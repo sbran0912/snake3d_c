@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "lib3d.h"
+#include "snake.h"
 
 /* ====================================================================
  * snake3d - Grundgeruest: Bodengitter plus ein paar Wuerfel.
@@ -40,18 +41,18 @@ static CellPos cellCenter(int row, int col) {
 }
 
 // append_cube haengt eine Wuerfel-Instanz an der Feldmitte (x, z) an.
-static void *append_cube(void *arr, double x, double z, ColorState col) {
+static void *append_cube(void *arr, double x, double z, ColorState color) {
     Instance in;
     in.model = mat4_translate(x, CUBE_SIZE / 2.0, z);
-    in.color = col;
+    in.color = color;
     return arr_push(arr, &in);
 }
 
 // build_instances legt die Wuerfel der ersten Zeile (row 0) an.
-static void *build_instances(void *arr, ColorState col) {
+static void *build_instances(void *arr, ColorState color) {
     for (int c = 0; c < CUBE_COUNT; c++) {
         CellPos p = cellCenter(0, c);
-        arr = append_cube(arr, p.x, p.z, col);
+        arr = append_cube(arr, p.x, p.z, color);
     }
     return arr;
 }
