@@ -19,7 +19,7 @@ add_executable(path3d
     lib3d/glcore.c
     lib3d/lib3d_util.c
     lib3d/lib3d.c
-    src/main.c
+    app/main.c
 )
 
 target_include_directories(path3d PRIVATE
