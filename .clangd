@@ -1,0 +1,10 @@
+# clangd-Konfiguration
+#
+# Sagt clangd, wo die Compile-Datenbank liegt. Damit ist der frühere
+# Symlink `compile_commands.json -> build/compile_commands.json` im
+# Projektwurzelverzeichnis nicht mehr nötig.
+#
+# Der CMake/Ninja-Build erzeugt `build/compile_commands.json`
+# (siehe CMAKE_EXPORT_COMPILE_COMMANDS in CMakeLists.txt).
+CompileFlags:
+  CompilationDatabase: build
