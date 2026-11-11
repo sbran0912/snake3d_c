@@ -1,13 +1,14 @@
-# Paralleler Build mit gcc (der CMake/Ninja-Build nutzt clang).
+# Paralleler Build mit gcc und clang (cmake).
 CC = gcc
 CFLAGS = -Wall -Wextra -O2 -std=c17 -Ilib3d
 LDFLAGS = -lglfw -lGL -lm
 
+APPNAME = snake
 SRCS = lib3d/glcore.c lib3d/lib3d_util.c lib3d/lib3d.c app/snake.c app/main.c
 OBJDIR = obj
 BINDIR = bin
 OBJS = $(patsubst %.c,$(OBJDIR)/%.o,$(SRCS))
-TARGET = $(BINDIR)/path3d
+TARGET = $(BINDIR)/$(APPNAME)
 
 # CMake/Ninja-Build (clang) - parallel zum gcc-Build oben.
 BUILDDIR = build
@@ -27,22 +28,19 @@ $(OBJDIR)/%.o: %.c
 clean:
 	rm -rf $(OBJDIR) $(BINDIR)
 
-# Startet den gcc-Build (baut ihn vorher bei Bedarf).
 run: $(TARGET)
 	./$(TARGET)
 
-# Konfiguriert neu und baut den clang-Build nach $(BUILDDIR)/path3d.
+# cmake builds
 cmake:
 	cmake -S . -B $(BUILDDIR) -G Ninja
 	cmake --build $(BUILDDIR)
 
-# Entfernt den CMake-Build.
 cmake-clean:
 	rm -rf $(BUILDDIR)
 
-# Baut und startet den clang-Build ($(BUILDDIR)/path3d).
 cmake-run: cmake
-	./$(BUILDDIR)/path3d
+	./$(BUILDDIR)/$(APPNAME)
 
 cmake-init:
 	cmake -S . -B build -G Ninja
