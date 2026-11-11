@@ -12,7 +12,7 @@ TARGET = $(BINDIR)/path3d
 # CMake/Ninja-Build (clang) - parallel zum gcc-Build oben.
 BUILDDIR = build
 
-.PHONY: all clean run cmake cmake-clean cmake-run
+.PHONY: all clean run cmake cmake-clean cmake-init cmake-run
 
 all: $(TARGET)
 
@@ -43,3 +43,6 @@ cmake-clean:
 # Baut und startet den clang-Build ($(BUILDDIR)/path3d).
 cmake-run: cmake
 	./$(BUILDDIR)/path3d
+
+cmake-init:
+	cmake -S . -B build -G Ninja

@@ -17,5 +17,6 @@ typedef struct {
 // init_snake initialisiert die Schlange mit einem dynamischen Array
 // fuer die Segmente.
 Snake init_snake(int x, int y, int directionX, int directionY);
+void snake_free(Snake *snake);
 
 #endif // SNAKE_H

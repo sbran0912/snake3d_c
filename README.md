@@ -74,12 +74,3 @@ Projektwurzelverzeichnis auf dieses Verzeichnis:
 CompileFlags:
   CompilationDatabase: build
 ```
-
-Ein Symlink `compile_commands.json` im Projektwurzelverzeichnis ist damit
-nicht nötig. clangd liest die Compile-Datenbank nur, solange `build/` existiert.
-
----
-
-Hinweis: Die Quelldateien befinden sich seit dieser Version im Verzeichnis `app/`
-(früher `src/`). Das Makefile und die CMakeLists.txt wurden entsprechend angepasst.
-

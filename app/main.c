@@ -1,6 +1,8 @@
+#include <stddef.h>
 #include <stdio.h>
 
 #include "lib3d.h"
+#include "lib3d_util.h"
 #include "snake.h"
 
 /* ====================================================================
@@ -17,15 +19,18 @@
 #define CELL_SIZE   1.0                           // Kantenlaenge eines Feldes
 #define EDGE_LENGTH (EDGE_CELLS * CELL_SIZE)      // Kantenlaenge des Gitters
 #define CUBE_SIZE   0.9                           // Wuerfelkante
-#define CUBE_COUNT  5                             // Wuerfel in der ersten Zeile
+#define SNAKE_COUNT 200
 
 /* --- Globale Szenen-/Loop-Daten --- */
-static Scene      g_scene;
-static Mesh       g_cubeMesh;
-static Mesh       g_gridMesh;
-static ShapeStyle g_gridStyle;
-static ShapeStyle g_cubeStyle;
-static void      *instances    = NULL; // arr_* von Instance
+static Scene scene;
+static Mesh cubeMesh;
+static Mesh gridMesh;
+static ShapeStyle gridStyle;
+static ShapeStyle cubeStyle;
+static Instance *instances    = NULL; // arr_* von Instance
+
+// Snake
+static Snake snake;
 
 // Weltkoordinaten der Feldmitte in der XZ-Ebene.
 typedef struct { double x, z; } CellPos;
@@ -40,6 +45,7 @@ static CellPos cellCenter(int row, int col) {
     return p;
 }
 
+
 // append_cube haengt eine Wuerfel-Instanz an der Feldmitte (x, z) an.
 static void *append_cube(void *arr, double x, double z, ColorState color) {
     Instance in;
@@ -48,10 +54,9 @@ static void *append_cube(void *arr, double x, double z, ColorState color) {
     return arr_push(arr, &in);
 }
 
-// build_instances legt die Wuerfel der ersten Zeile (row 0) an.
-static void *build_instances(void *arr, ColorState color) {
-    for (int c = 0; c < CUBE_COUNT; c++) {
-        CellPos p = cellCenter(0, c);
+static void *build_instances(void *arr, ColorState color, const Point *segments, size_t count) {
+    for (size_t i = 0; i < count; i++) {
+        CellPos p = cellCenter(segments[i].y, segments[i].x);
         arr = append_cube(arr, p.x, p.z, color);
     }
     return arr;
@@ -59,38 +64,39 @@ static void *build_instances(void *arr, ColorState color) {
 
 // Loop (Ersatz fuer die draw-Closure in Go).
 static void draw(void) {
-    l3d_begin_scene(g_scene);
+    l3d_begin_scene(scene);
 
     // Bodengitter (XZ-Ebene bei y=0) aus dem geteilten Mesh.
-    l3d_draw_mesh(g_gridMesh, g_gridStyle, NULL);
+    l3d_draw_mesh(gridMesh, gridStyle, NULL);
 
     // Die Wuerfel der ersten Zeile in EINEM Instancing-Draw-Call.
-    l3d_draw_mesh_instanced(g_cubeMesh, g_cubeStyle,
+    l3d_draw_mesh_instanced(cubeMesh, cubeStyle,
                            (const Instance *) instances,
                            (int) arr_len(instances));
 }
 
 int main(void) {
-    g_scene = scene_new();
-    g_scene.cam.pos    = vec3(17, 24, 32);
-    g_scene.cam.target = vec3(0, 0, 0);
-    g_scene.cam.up     = vec3(0, 1, 0);
-    g_scene.cam.far    = 500;
+    scene = scene_new();
+    scene.cam.pos    = vec3(17, 24, 32);
+    scene.cam.target = vec3(0, 0, 0);
+    scene.cam.up     = vec3(0, 1, 0);
+    scene.cam.far    = 500;
 
     // Meshes EINMAL erzeugen und wiederverwenden.
-    g_cubeMesh = make_cube_mesh(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
-    g_gridMesh = make_grid_mesh(EDGE_LENGTH, EDGE_CELLS);
+    cubeMesh = make_cube_mesh(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
+    gridMesh = make_grid_mesh(EDGE_LENGTH, EDGE_CELLS);
 
-    g_gridStyle.stroke    = color_hex("#777774");
-    g_gridStyle.lineWidth = 1;
+    gridStyle.stroke    = color_hex("#777774");
+    gridStyle.lineWidth = 1;
 
-    g_cubeStyle.stroke    = color_hex("#6b5200");
-    g_cubeStyle.fill      = color_hex("#ffffff"); // wird pro Instanz ueberschrieben
-    g_cubeStyle.lineWidth = 1;
-    g_cubeStyle.mode      = STYLE_BOTH;
+    cubeStyle.stroke    = color_hex("#6b5200");
+    cubeStyle.fill      = color_hex("#ffffff"); // wird pro Instanz ueberschrieben
+    cubeStyle.lineWidth = 1;
+    cubeStyle.mode      = STYLE_BOTH;
 
-    instances = arr_create((size_t) CUBE_COUNT, sizeof(Instance));
-    instances = build_instances(instances, parse_hex("#87CEEB"));
+    snake = init_snake(10, 10, 1, 1);
+    instances = arr_create(SNAKE_COUNT, sizeof(Instance));
+    instances = build_instances(instances, parse_hex("#87CEEB"), snake.segments, arr_len(snake.segments));
 
     if (!l3d_init()) {
         fprintf(stderr, "snake3d: Initialisierung fehlgeschlagen\n");
@@ -102,8 +108,9 @@ int main(void) {
 
     // Aufraeumen (nach dem Schliessen des Fensters).
     arr_free(instances);
-    mesh_free(&g_cubeMesh);
-    mesh_free(&g_gridMesh);
+    mesh_free(&cubeMesh);
+    mesh_free(&gridMesh);
+    snake_free(&snake);
 
     return 0;
 }
