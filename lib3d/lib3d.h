@@ -1,28 +1,26 @@
 #ifndef LIB3D_H
 #define LIB3D_H
 
-/* ==================================================================
- * lib3d - C-Port des Go-Pakets lib3d.
- *
- * Inhalt (vollstaendig uebertragen aus dem Go-Original):
- *   mesh.go / body.go / mesh_io.go          -> Mesh-Erzeugung, Bodies,
- *                                              OBJ-Loader
- *   draw.go / shader.go / renderer.go       -> Zeichen-Fassade, Renderer
- *                                              (OpenGL 3.3 Core, GLFW)
- *
- * Die Basis-Helfer (vec.go / mat4.go / color.go / math.go sowie die
- * generischen Container arr_* und hm_*) liegen in lib3d_util.h und
- * werden hier eingebunden.
- *
- * Konventionen (identisch zum Go-Code):
- *   - +Y zeigt nach oben, Kamera blickt in +Z.
- *   - Matrix4x4 ist zeilen-major (m[zeile][spalte]) vom Typ double;
- *     fuer OpenGL wird beim Hochladen in Spalten-major Float32 gewandelt.
- *   - Mesh-Daten sind float-Tripel (xyz), als dynamisch allozierte
- *     Arrays; mesh_free() gibt sie wieder frei.
- *   - Der Renderer arbeitet mit FIXEN Puffern (keine dynamischen
- *     Datenstrukturen) - Kapazitaeten siehe MAX_*-Defines in lib3d.c.
- * ================================================================== */
+// lib3d - C-Port des Go-Pakets lib3d.
+//
+// Inhalt (vollstaendig uebertragen aus dem Go-Original):
+//   mesh.go / body.go / mesh_io.go          -> Mesh-Erzeugung, Bodies,
+//                                              OBJ-Loader
+//   draw.go / shader.go / renderer.go       -> Zeichen-Fassade, Renderer
+//                                              (OpenGL 3.3 Core, GLFW)
+//
+// Die Basis-Helfer (vec.go / mat4.go / color.go / math.go sowie die
+// generischen Container arr_* und hm_*) liegen in lib3d_util.h und
+// werden hier eingebunden.
+//
+// Konventionen (identisch zum Go-Code):
+//   - +Y zeigt nach oben, Kamera blickt in +Z.
+//   - Matrix4x4 ist zeilen-major (m[zeile][spalte]) vom Typ double;
+//     fuer OpenGL wird beim Hochladen in Spalten-major Float32 gewandelt.
+//   - Mesh-Daten sind float-Tripel (xyz), als dynamisch allozierte
+//     Arrays; mesh_free() gibt sie wieder frei.
+//   - Der Renderer arbeitet mit FIXEN Puffern (keine dynamischen
+//     Datenstrukturen) - Kapazitaeten siehe MAX_*-Defines in lib3d.c.
 
 #include <stddef.h>
 #include <stdint.h>
@@ -33,12 +31,10 @@
 extern "C" {
 #endif
 
-/* ------------------------------------------------------------------
- * TYPEN
- *
- * Vec3, Vec2, Mat4x4, ColorState und ColorInput kommen aus
- * lib3d_util.h (oben eingebunden).
- * ------------------------------------------------------------------ */
+// TYPEN
+//
+// Vec3, Vec2, Mat4x4, ColorState und ColorInput kommen aus
+// lib3d_util.h (oben eingebunden).
 typedef enum { STYLE_STROKE = 0, STYLE_FILL = 1, STYLE_BOTH = 2 } DrawStyle;
 typedef enum { EFFECT_FLAT = 0, EFFECT_GRADIENT = 1, EFFECT_PULSE = 2 } EffectMode;
 
@@ -107,9 +103,7 @@ typedef struct { Vec3 pos, target, up; double fovY, near, far; } Camera;
 typedef struct { int enabled; double near, far; ColorState color; } Fog;
 typedef struct { Camera cam; Vec3 sunDir; Fog fog; ColorState background; } Scene;
 
-/* ------------------------------------------------------------------
- * MESH  (Port von mesh.go)
- * ------------------------------------------------------------------ */
+// MESH  (Port von mesh.go)
 Mesh make_cube_mesh(double w, double h, double d);
 Mesh make_pyramid_mesh(double base, double height);
 Mesh make_sphere_mesh(double radius, int slices, int stacks);
@@ -117,18 +111,14 @@ Mesh make_grid_mesh(double size, int cells);
 Mesh scale_mesh(Mesh mesh, double s);        // liefert neue Kopie
 void mesh_free(Mesh *m);
 
-/* ------------------------------------------------------------------
- * MESH-LADEN  (Port von mesh_io.go, Wavefront-OBJ)
- * ------------------------------------------------------------------ */
+// MESH-LADEN  (Port von mesh_io.go, Wavefront-OBJ)
 #define L3D_OBJ_OK         0
 #define L3D_OBJ_ERR_FILE   (-1)
 #define L3D_OBJ_ERR_VERTEX (-2)
 #define L3D_OBJ_ERR_INDEX  (-3)
 int load_obj(const char *path, Mesh *out);   // 0 = Erfolg, sonst Fehlercode
 
-/* ------------------------------------------------------------------
- * BODY / FACES  (Port von body.go)
- * ------------------------------------------------------------------ */
+// BODY / FACES  (Port von body.go)
 Face *build_faces(const Mesh *mesh, int *out_count); // malloc; faces_free()
 void  faces_free(Face *faces);
 Face  transform_face(Face f, const Mat4x4 *model);
@@ -142,16 +132,12 @@ Mat4x4 body_model_matrix(const Body *b);
 Face *body_world_faces(const Body *b, int *out_count);
 void  body_free(Body *b);                    // gibt nur faces frei
 
-/* ------------------------------------------------------------------
- * KAMERA / SZENE
- * ------------------------------------------------------------------ */
+// KAMERA / SZENE
 Mat4x4 camera_view(Camera c);
 Mat4x4 camera_projection(Camera c, double aspect);
 Scene  scene_new(void);
 
-/* ------------------------------------------------------------------
- * TASTEN-CODES  (exakt die GLFW_KEY_*-Codes, Port aus renderer.go)
- * ------------------------------------------------------------------ */
+// TASTEN-CODES  (exakt die GLFW_KEY_*-Codes, Port aus renderer.go)
 #define KEY_SPACE        32
 #define KEY_APOSTROPHE   39
 #define KEY_COMMA        44
@@ -236,9 +222,7 @@ Scene  scene_new(void);
 #define KEY_RIGHT_ALT    346
 #define KEY_RIGHT_SUPER  347
 
-/* ------------------------------------------------------------------
- * RENDER-API  (Port von renderer.go / draw.go / shader.go)
- * ------------------------------------------------------------------ */
+// RENDER-API  (Port von renderer.go / draw.go / shader.go)
 
 // Setup & Schleife
 int  l3d_init(void);                         // 1 = ok, 0 = Fehler

@@ -1,14 +1,12 @@
 #ifndef GLCORE_H
 #define GLCORE_H
 
-/* ==================================================================
- * Minimaler OpenGL-3.3-Core-Loader (Ersatz fuer GLAD/GLEW).
- *
- * Deklariert die GL-Datentypen, die im Projekt benoetigten Konstanten
- * und Funktionszeiger. Die Zeiger werden zur Laufzeit ueber
- * glfwGetProcAddress geladen (siehe glcore.c). GLFW selbst bleibt
- * funktionslos bzgl. GL - es wird GLFW_INCLUDE_NONE gesetzt.
- * ================================================================== */
+// Minimaler OpenGL-3.3-Core-Loader (Ersatz fuer GLAD/GLEW).
+//
+// Deklariert die GL-Datentypen, die im Projekt benoetigten Konstanten
+// und Funktionszeiger. Die Zeiger werden zur Laufzeit ueber
+// glfwGetProcAddress geladen (siehe glcore.c). GLFW selbst bleibt
+// funktionslos bzgl. GL - es wird GLFW_INCLUDE_NONE gesetzt.
 
 #include <stddef.h>
 
@@ -16,7 +14,7 @@
 extern "C" {
 #endif
 
-/* --- GL-Datentypen --- */
+// --- GL-Datentypen ---
 typedef unsigned int  GLenum;
 typedef unsigned char GLboolean;
 typedef unsigned int  GLbitfield;
@@ -34,7 +32,7 @@ typedef char          GLchar;
 typedef ptrdiff_t     GLintptr;
 typedef ptrdiff_t     GLsizeiptr;
 
-/* --- Konstanten (nur die benoetigten) --- */
+// --- Konstanten (nur die benoetigten) ---
 #define GL_FALSE                0
 #define GL_TRUE                 1
 #define GL_POINTS               0x0000
@@ -57,7 +55,7 @@ typedef ptrdiff_t     GLsizeiptr;
 #define GL_COLOR_BUFFER_BIT     0x00004000
 #define GL_DEPTH_BUFFER_BIT     0x00000100
 
-/* --- Funktionszeiger --- */
+// --- Funktionszeiger ---
 typedef GLuint   (*PFN_glCreateShader)(GLenum type);
 typedef void     (*PFN_glShaderSource)(GLuint shader, GLsizei count,
                                        const GLchar **string, const GLint *length);

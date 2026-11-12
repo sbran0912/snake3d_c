@@ -5,15 +5,13 @@
 #include "lib3d_util.h"
 #include "snake.h"
 
-/* ====================================================================
- * snake3d - Grundgeruest: Bodengitter plus ein paar Wuerfel.
- *
- * Ein Bodengitter aus 40x40 Feldern. In der ersten Zeile (row 0)
- * stehen 5 Wuerfel, die je genau ein Feld bedecken.
- *
- * Konvention: col zeigt in X-Richtung, row in Z-Richtung. Das Gitter
- * liegt zentriert um den Ursprung in der XZ-Ebene (y=0).
- * ================================================================== */
+// snake3d - Grundgeruest: Bodengitter plus ein paar Wuerfel.
+//
+// Ein Bodengitter aus 40x40 Feldern. In der ersten Zeile (row 0)
+// stehen 5 Wuerfel, die je genau ein Feld bedecken.
+//
+// Konvention: col zeigt in X-Richtung, row in Z-Richtung. Das Gitter
+// liegt zentriert um den Ursprung in der XZ-Ebene (y=0).
 
 #define EDGE_CELLS  40                            // Felder pro Achse
 #define CELL_SIZE   1.0                           // Kantenlaenge eines Feldes
@@ -21,7 +19,7 @@
 #define CUBE_SIZE   0.9                           // Wuerfelkante
 #define SNAKE_COUNT 200
 
-/* --- Globale Szenen-/Loop-Daten --- */
+// --- Globale Szenen-/Loop-Daten ---
 static Scene scene;
 static Mesh cubeMesh;
 static Mesh gridMesh;

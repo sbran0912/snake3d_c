@@ -5,9 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* ==================================================================
- * VEC3  (Port von vec.go)
- * ================================================================== */
+// VEC3  (Port von vec.go)
 
 Vec3 vec3(double x, double y, double z) {
     Vec3 v = {x, y, z};
@@ -100,9 +98,7 @@ Vec3 vec3_transform_dir(Vec3 v, const Mat4x4 *m) {
         v.x * m->m[2][0] + v.y * m->m[2][1] + v.z * m->m[2][2]);
 }
 
-/* ==================================================================
- * MATRIX  (Port von mat4.go, zeilen-major double[4][4])
- * ================================================================== */
+// MATRIX  (Port von mat4.go, zeilen-major double[4][4])
 
 Mat4x4 mat4_identity(void) {
     Mat4x4 r = {0};
@@ -195,9 +191,7 @@ Mat4x4 mat4_perspective(double fovY, double aspect, double near, double far) {
     return r;
 }
 
-/* ==================================================================
- * FARBE  (Port von color.go)
- * ================================================================== */
+// FARBE  (Port von color.go)
 
 ColorState parse_hex(const char *hex) {
     const char *h = hex;
@@ -256,9 +250,7 @@ ColorInput color_rgba(double r, double g, double b, double a) {
 }
 ColorInput color_of(ColorState c)              { return (ColorInput){1, c}; }
 
-/* ==================================================================
- * MATH-HILFEN  (Port von math.go)
- * ================================================================== */
+// MATH-HILFEN  (Port von math.go)
 
 Vec2 project(double fov, Vec3 v) {
     double s = fov / (fov + v.z);
@@ -361,14 +353,12 @@ void arr_free(void* arr) {
     free(raw);
 }
 
-/* ==================================================================
- * HASH-MAP  (generisch, Ersatz fuer Go's map[K]V; frueher in lib_core.c)
- *
- * Verkettet in Buckets; waechst automatisch, sobald der Fuellgrad
- * ~0.75 ueberschreitet. Schluessel und Werte werden als rohe Bytes
- * kopiert (memcpy). Optional koennen eigene Hash-/Vergleichsfunktionen
- * uebergeben werden (NULL = FNV-1a ueber die Bytes bzw. memcmp).
- * ================================================================== */
+// HASH-MAP  (generisch, Ersatz fuer Go's map[K]V; frueher in lib_core.c)
+//
+// Verkettet in Buckets; waechst automatisch, sobald der Fuellgrad
+// ~0.75 ueberschreitet. Schluessel und Werte werden als rohe Bytes
+// kopiert (memcpy). Optional koennen eigene Hash-/Vergleichsfunktionen
+// uebergeben werden (NULL = FNV-1a ueber die Bytes bzw. memcmp).
 
 struct HmBucket {
     void *key;
