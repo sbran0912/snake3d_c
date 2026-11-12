@@ -46,18 +46,15 @@ static CellPos cellCenter(int row, int col) {
 }
 
 
-// append_cube haengt eine Wuerfel-Instanz an der Feldmitte (x, z) an.
-static void *append_cube(void *arr, double x, double z, ColorState color) {
-    Instance in;
-    in.model = mat4_translate(x, CUBE_SIZE / 2.0, z);
-    in.color = color;
-    return arr_push(arr, &in);
-}
-
+// build_instances haengt fuer jedes Segment eine Wuerfel-Instanz an der
+// Feldmitte (x, z) an.
 static void *build_instances(void *arr, ColorState color, const Point *segments, size_t count) {
     for (size_t i = 0; i < count; i++) {
         CellPos p = cellCenter(segments[i].y, segments[i].x);
-        arr = append_cube(arr, p.x, p.z, color);
+        Instance in;
+        in.model = mat4_translate(p.x, CUBE_SIZE / 2.0, p.z);
+        in.color = color;
+        arr = arr_push(arr, &in);
     }
     return arr;
 }

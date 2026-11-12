@@ -285,7 +285,6 @@ float limit_num(float number, float limit) {
     return numberMag * vorzeichen;
 }
 
-//dynamisches Array
 void* arr_create(size_t capacity, size_t elemsize) {
     size_t *raw = malloc(3 * sizeof(size_t) + (capacity * elemsize));
     raw[0] = 0;                 // Number of elements currently in the array

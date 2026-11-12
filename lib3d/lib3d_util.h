@@ -37,8 +37,8 @@ typedef struct { double m[4][4]; } Mat4x4;   // zeilen-major
 typedef struct { double r, g, b, a; } ColorState;
 typedef struct { int set; ColorState color; } ColorInput;
 
-/* ------------------------------------------------------------------
- * VEC3  (Port von vec.go)
+/** ------------------------------------------------------------------
+ * Vektoren 3D
  * ------------------------------------------------------------------ */
 Vec3 vec3(double x, double y, double z);           // NewVec3
 Vec3 vec3_add(Vec3 a, Vec3 b);
@@ -96,13 +96,7 @@ int    l3d_random(int n1, int n2);            // ganzzahlig in [n1, n2)
 double l3d_random_float(double lo, double hi);// in [lo, hi)
 float  limit_num(float number, float limit);  // begrenzt den Betrag, Vorzeichen bleibt
 
-/* ------------------------------------------------------------------
- * DYNAMISCHES ARRAY
- *
- * arr_create() liefert einen Zeiger auf die Nutzdaten; davor liegen
- * drei size_t-Metadaten (Laenge, Kapazitaet, Elementgroesse). arr_push()
- * kann den Zeiger verschieben, daher immer den Rueckgabewert verwenden.
- * ------------------------------------------------------------------ */
+//Dynamisches Array
 void  *arr_create(size_t capacity, size_t elemsize);
 size_t arr_len(void *arr);
 size_t arr_cap(void *arr);
@@ -113,13 +107,9 @@ void   arr_delete(void *arr);  // setzt Laenge auf 0 (Kapazitaet bleibt)
 void   arr_free(void *arr);
 
 /* ------------------------------------------------------------------
- * HASH-MAP  (generisch, Ersatz fuer Go's map[K]V)
- *
- * Verkettet in Buckets; waechst automatisch, sobald der Fuellgrad
- * ~0.75 ueberschreitet. Schluessel und Werte werden als rohe Bytes
- * kopiert (memcpy). Optional koennen eigene Hash-/Vergleichsfunktionen
- * uebergeben werden (NULL = FNV-1a ueber die Bytes bzw. memcmp).
+ * HASH-MAP
  * ------------------------------------------------------------------ */
+
 typedef uint64_t (*HashMap_HashFn)(const void *key);
 typedef int (*HashMap_EqFn)(const void *keyA, const void *keyB);
 
