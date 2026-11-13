@@ -59,6 +59,12 @@ static void *build_instances(void *arr, ColorState color, const Point *segments,
 
 // Loop (Ersatz fuer die draw-Closure in Go).
 static void draw(void) {
+    // Pfeiltasten abfragen und im Terminal ausgeben (je Tastendruck einmal).
+    if (l3d_key_pressed(KEY_UP))    printf("Pfeiltaste: oben\n");
+    if (l3d_key_pressed(KEY_DOWN))  printf("Pfeiltaste: unten\n");
+    if (l3d_key_pressed(KEY_LEFT))  printf("Pfeiltaste: links\n");
+    if (l3d_key_pressed(KEY_RIGHT)) printf("Pfeiltaste: rechts\n");
+
     l3d_begin_scene(scene);
 
     // Bodengitter (XZ-Ebene bei y=0) aus dem geteilten Mesh.
@@ -93,7 +99,8 @@ int main(void) {
     instances = arr_create(SNAKE_COUNT, sizeof(Instance));
     instances = build_instances(instances, parse_hex("#87CEEB"), snake.segments, arr_len(snake.segments));
 
-    if (!l3d_init()) {
+    int ok = l3d_init();
+    if (!ok) {
         fprintf(stderr, "snake3d: Initialisierung fehlgeschlagen\n");
         return 1;
     }
