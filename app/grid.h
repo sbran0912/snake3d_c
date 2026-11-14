@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-#include "lib3d.h"   // ColorState, Instance
+#include "lib3d_util.h"   // ColorState
 
 // Gitter, zentriert um den Ursprung in der XZ-Ebene.
 typedef struct {
@@ -26,8 +26,6 @@ CellPos grid_cell_center(const Grid *g, int row, int col);
 
 // grid_push_cubes haengt fuer jede Zelle eine Wuerfel-Instanz der Hoehe
 // `height` an und liefert das (evtl. verschobene) arr_*-Array zurueck.
-void *grid_push_cubes(void *arr, const Grid *g,
-                      const Cell *cells, size_t count,
-                      double height, ColorState color);
+void *grid_push_cubes(void *arr, const Grid *g, const Cell *cells, size_t count, double height, ColorState color);
 
 #endif // GRID_H
