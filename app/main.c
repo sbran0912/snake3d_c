@@ -3,6 +3,7 @@
 
 #include "lib3d.h"
 #include "lib3d_util.h"
+#include "grid.h"
 #include "snake.h"
 
 // snake3d - Grundgeruest: Bodengitter plus ein paar Wuerfel.
@@ -30,32 +31,8 @@ static Instance *instances    = NULL; // arr_* von Instance
 // Snake
 static Snake snake;
 
-// Weltkoordinaten der Feldmitte in der XZ-Ebene.
-typedef struct { double x, z; } CellPos;
-
-// cellCenter rechnet Weltkoordinaten der Feldmitte fuer ein Feld
-// (row, col). col -> X-Achse, row -> Z-Achse, Feldmitte +0.5-Verschiebung.
-static CellPos cellCenter(int row, int col) {
-    double half = EDGE_LENGTH / 2.0;
-    CellPos p;
-    p.x = -half + ((double) col + 0.5) * CELL_SIZE;
-    p.z = -half + ((double) row + 0.5) * CELL_SIZE;
-    return p;
-}
-
-
-// build_instances haengt fuer jedes Segment eine Wuerfel-Instanz an der
-// Feldmitte (x, z) an.
-static void *build_instances(void *arr, ColorState color, const Point *segments, size_t count) {
-    for (size_t i = 0; i < count; i++) {
-        CellPos p = cellCenter(segments[i].y, segments[i].x);
-        Instance in;
-        in.model = mat4_translate(p.x, CUBE_SIZE / 2.0, p.z);
-        in.color = color;
-        arr = arr_push(arr, &in);
-    }
-    return arr;
-}
+// Gitter-Parameter (zentriert um den Ursprung in der XZ-Ebene).
+static Grid grid = { .edgeCells = EDGE_CELLS, .cellSize = CELL_SIZE };
 
 // Loop (Ersatz fuer die draw-Closure in Go).
 static void draw(void) {
@@ -97,7 +74,9 @@ int main(void) {
 
     snake = init_snake(10, 10, 1, 1);
     instances = arr_create(SNAKE_COUNT, sizeof(Instance));
-    instances = build_instances(instances, parse_hex("#87CEEB"), snake.segments, arr_len(snake.segments));
+    instances = grid_push_cubes(instances, &grid, snake.segments,
+                                arr_len(snake.segments), CUBE_SIZE,
+                                parse_hex("#87CEEB"));
 
     int ok = l3d_init();
     if (!ok) {

@@ -6,14 +6,14 @@
 // fuer die Segmente.
 Snake init_snake(int x, int y, int directionX, int directionY) {
     Snake snake = {
-        .segments   = arr_create(1, sizeof(Point)),
+        .segments   = arr_create(1, sizeof(Cell)),
         .head       = 0,
         .tail       = 0,
         .directionX = directionX,
         .directionY = directionY,
     };
 
-    Point start = { x, y };
+    Cell start = { .row = y, .col = x };
     snake.segments = arr_push(snake.segments, &start);
     return snake;
 }

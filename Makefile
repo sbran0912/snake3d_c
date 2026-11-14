@@ -4,7 +4,7 @@ CFLAGS = -Wall -Wextra -O2 -std=c17 -Ilib3d
 LDFLAGS = -lglfw -lGL -lm
 
 APPNAME = snake
-SRCS = lib3d/glcore.c lib3d/lib3d_util.c lib3d/lib3d.c app/snake.c app/main.c
+SRCS = lib3d/glcore.c lib3d/lib3d_util.c lib3d/lib3d.c app/grid.c app/snake.c app/main.c
 OBJDIR = obj
 BINDIR = bin
 OBJS = $(patsubst %.c,$(OBJDIR)/%.o,$(SRCS))

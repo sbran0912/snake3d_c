@@ -1,13 +1,10 @@
 #ifndef SNAKE_H
 #define SNAKE_H
 
-typedef struct {
-    int x;
-    int y;
-} Point;
+#include "grid.h"   // Cell
 
 typedef struct {
-    Point *segments; // dynamisches Array
+    Cell  *segments; // dynamisches Array
     int    head;
     int    tail;
     int    directionX;

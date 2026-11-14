@@ -19,6 +19,7 @@ add_executable(snake
     lib3d/glcore.c
     lib3d/lib3d_util.c
     lib3d/lib3d.c
+    app/grid.c
     app/snake.c
     app/main.c
 )
