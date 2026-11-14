@@ -13,7 +13,7 @@ TARGET = $(BINDIR)/$(APPNAME)
 # CMake/Ninja-Build (clang) - parallel zum gcc-Build oben.
 BUILDDIR = build
 
-.PHONY: all clean run cmake cmake-clean cmake-init cmake-run cmake-tidy
+.PHONY: all clean run cmake cmake-debug cmake-clean cmake-init cmake-run cmake-tidy
 
 all: $(TARGET)
 
@@ -33,7 +33,12 @@ run: $(TARGET)
 
 # cmake builds
 cmake:
-	cmake -S . -B $(BUILDDIR) -G Ninja
+	cmake -S . -B $(BUILDDIR) -G Ninja -DCMAKE_BUILD_TYPE=Release
+	cmake --build $(BUILDDIR)
+
+# Debug-Build (-O0 -g3), Binary unter build/snake.
+cmake-debug:
+	cmake -S . -B $(BUILDDIR) -G Ninja -DCMAKE_BUILD_TYPE=Debug
 	cmake --build $(BUILDDIR)
 
 cmake-clean:

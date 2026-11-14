@@ -26,6 +26,18 @@ Nach Code-Änderungen genügt:
 cmake --build build
 ```
 
+Der Build-Typ ist standardmäßig `Release` (`-O2 -DNDEBUG`). Für einen
+Debug-Build mit vollen Debug-Infos (`-O0 -g3`):
+
+```sh
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+cmake --build build
+```
+
+Ein Wechsel des Build-Typs in einem bestehenden `build/` funktioniert über
+`cmake -S . -B build -DCMAKE_BUILD_TYPE=...`; im Zweifel `rm -rf build` und
+neu konfigurieren.
+
 Neu konfigurieren (`cmake -S . -B build -G Ninja`) muss man nur, wenn sich
 `CMakeLists.txt` ändert, neue Dateien hinzukommen oder `build/` gelöscht wurde.
 
@@ -47,7 +59,8 @@ make clean        # entfernt bin/ und obj/
 Alternativ lässt sich der CMake/Ninja-Build (clang) auch über das Makefile anstoßen:
 
 ```sh
-make cmake        # konfiguriert und baut build/path3d
+make cmake        # konfiguriert (Release) und baut build/path3d
+make cmake-debug  # konfiguriert (Debug) und baut build/path3d
 make cmake-init   # konfiguriert (cmake -S . -B build -G Ninja)
 make cmake-run    # baut und startet build/path3d
 make cmake-clean  # entfernt build/
