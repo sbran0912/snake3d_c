@@ -1,0 +1,16 @@
+Checks: >
+  -*,
+  clang-analyzer-core.*,
+  clang-analyzer-unix.*,
+  clang-analyzer-security.ArrayBound,
+  clang-analyzer-security.PointerSub,
+  clang-analyzer-security.cert.env.InvalidPtr,
+  clang-analyzer-valist.*,
+  bugprone-sizeof-expression,
+  bugprone-suspicious-memset-usage,
+  bugprone-suspicious-realloc-usage,
+  bugprone-misplaced-pointer-arithmetic-in-alloc,
+  -clang-analyzer-core.DivideZero,
+  -clang-analyzer-core.BitwiseShift
+
+HeaderFilterRegex: ''

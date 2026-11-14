@@ -13,7 +13,7 @@ TARGET = $(BINDIR)/$(APPNAME)
 # CMake/Ninja-Build (clang) - parallel zum gcc-Build oben.
 BUILDDIR = build
 
-.PHONY: all clean run cmake cmake-clean cmake-init cmake-run
+.PHONY: all clean run cmake cmake-clean cmake-init cmake-run cmake-tidy
 
 all: $(TARGET)
 
@@ -43,4 +43,12 @@ cmake-run: cmake
 	./$(BUILDDIR)/$(APPNAME)
 
 cmake-init:
-	cmake -S . -B build -G Ninja
+	cmake -S . -B $(BUILDDIR) -G Ninja
+
+# clang-tidy ueber die Compile-Datenbank aus build/.
+# cmake-init stellt sicher, dass build/compile_commands.json existiert.
+cmake-tidy: cmake-init
+	@echo "----------------------------"
+	@echo "Prüfen auf Speicherfehler..."
+	@echo "----------------------------"
+	clang-tidy -p $(BUILDDIR) app/*.c
