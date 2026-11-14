@@ -33,6 +33,9 @@ typedef struct { double m[4][4]; } Mat4x4;   // zeilen-major
 typedef struct { double r, g, b, a; } ColorState;
 typedef struct { int set; ColorState color; } ColorInput;
 
+// ALLGEMEINE HELPER-FUNKTIONEN
+size_t SafeTextCopy(char *dst, size_t dst_size, const char *src);
+
 // Vektoren 3D
 Vec3 vec3(double x, double y, double z);           // NewVec3
 Vec3 vec3_add(Vec3 a, Vec3 b);

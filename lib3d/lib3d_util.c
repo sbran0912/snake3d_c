@@ -4,6 +4,31 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
+
+
+// ALLGEMEINE HELPER-FUNKTIONEN
+size_t SafeTextCopy(char *dst, size_t dst_size, const char *src)
+{
+    size_t bytes = 0;
+
+    if ((src != NULL) && (dst != NULL) && (dst_size > 0))
+    {
+        // Maximal (dst_size - 1) Zeichen kopieren, um Platz für '\0' zu lassen
+        while ((*src != '\0') && (bytes < (dst_size - 1)))
+        {
+            *dst = *src;
+            dst++;
+            src++;
+            bytes++;
+        }
+
+        // Garantiert eine saubere Null-Terminierung am Ende
+        *dst = '\0';
+    }
+
+    return bytes;
+}
 
 // VEC3  (Port von vec.go)
 
