@@ -304,6 +304,7 @@ float limit_num(float number, float limit) {
 
 void* arr_create(size_t capacity, size_t elemsize) {
     size_t *raw = malloc(3 * sizeof(size_t) + (capacity * elemsize));
+    if (!raw) return NULL;
     raw[0] = 0;                 // Number of elements currently in the array
     raw[1] = capacity;         // capacity - how many elements can the array currently store
     raw[2] = elemsize;           // Size of elements
@@ -319,53 +320,60 @@ size_t arr_cap(void* arr) {
 }
 
 void* arr_push(void* arr, void* val) {
+    if (!arr || !val) return arr;   // kein Array -> nichts anhaengen
     size_t* raw = (size_t*)(void*)arr - 3;
     size_t len = raw[0];
     size_t cap = raw[1];
     size_t elemsize = raw[2];
 
-    len++;                  //increase counter
-    raw[0] = len;           //save counter in array
-
-    if (len > cap) {
+    if (len >= cap) {
         size_t new_cap = cap + 10;
-        raw[1] = new_cap;      //calculate new capacity
-        raw = realloc(raw, 3 * sizeof(size_t) + (new_cap * elemsize));
-        arr = (void*)&raw[3]; //Array-Pointer wird wieder auf richtigen Startpunkt gestellt
+        // realloc erst in einen temporaeren Zeiger: bei Fehler bleibt der
+        // alte Block (samt Header) unveraendert und geht nicht verloren.
+        size_t* tmp = realloc(raw, 3 * sizeof(size_t) + (new_cap * elemsize));
+        if (!tmp) return arr;
+        raw = tmp;
+        raw[1] = new_cap;
     }
 
-    char* new_item = (char*)&raw[3] + ((len-1) * elemsize);   //count 1 = index 0, count 2 = index 1 etc.
+    char* new_item = (char*)&raw[3] + (len * elemsize);   // count 1 = index 0, count 2 = index 1 etc.
     memcpy(new_item, val, elemsize);
-    return arr;
+    raw[0] = len + 1;
+    return (void*)&raw[3];
 }
 
 void arr_pop(void* arr, size_t idx) {
+    if (!arr) return;
     size_t* raw = (size_t*)(void*)arr - 3;
     size_t len = raw[0];
+    if (len == 0 || idx >= len) return;   // leeres Array / Index ausserhalb
     size_t elemsize = raw[2];
-    while (idx < len -1) {
+    while (idx + 1 < len) {
         char* val = (char*)&raw[3] + ((idx + 1) * elemsize); //Pointer auf nächstes Element
         char* upd_item = (char*)&raw[3] + (idx * elemsize); //Pointer aktuelles Element
         memcpy(upd_item, val, elemsize); //Kopiere Wert vom nächsten Element auf aktuelles Element
         idx++;
     }
-    len--;
-    raw[0] = len;
+    raw[0] = len - 1;
 }
 
 void* arr_reduce(void* arr) {
+    if (!arr) return NULL;
     size_t* raw = (size_t*)(void*)arr - 3;
     size_t len = raw[0];
     size_t cap = raw[1];
     size_t elemsize = raw[2];
 
     if (len < cap) {
-        cap = len;
-        raw[1] = cap; //Kapazität auf Länge setzen
-        raw = realloc(raw, 3 * sizeof(size_t) + (len * elemsize)); //Speicherbereich kürzen
-        arr = (void*)&raw[3]; //Array-Pointer wird wieder auf richtigen Startpunkt gestellt
+        // Bei fehlgeschlagenem Shrink bleibt der alte (groessere) Block
+        // gueltig; nur die Kapazitaet im Header wird dann nicht geaendert.
+        size_t* tmp = realloc(raw, 3 * sizeof(size_t) + (len * elemsize));
+        if (tmp) {
+            raw = tmp;
+            raw[1] = len; //Kapazität auf Länge setzen
+        }
     }
-    return arr;
+    return (void*)&raw[3];
 }
 
 void arr_delete(void* arr) {

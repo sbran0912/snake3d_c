@@ -56,5 +56,4 @@ cmake-tidy: cmake-init
 	@echo "----------------------------"
 	@echo "Prüfen auf Speicherfehler..."
 	@echo "----------------------------"
-	clang-tidy -p $(BUILDDIR) app/*.c
-	clang-tidy -p $(BUILDDIR) lib3d/*.c
+	clang-tidy -p $(BUILDDIR) lib3d/*.c app/*.c

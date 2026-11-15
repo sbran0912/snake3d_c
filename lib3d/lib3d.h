@@ -116,6 +116,7 @@ void mesh_free(Mesh *m);
 #define L3D_OBJ_ERR_FILE   (-1)
 #define L3D_OBJ_ERR_VERTEX (-2)
 #define L3D_OBJ_ERR_INDEX  (-3)
+#define L3D_OBJ_ERR_MEM    (-4)
 int load_obj(const char *path, Mesh *out);   // 0 = Erfolg, sonst Fehlercode
 
 // BODY / FACES  (Port von body.go)

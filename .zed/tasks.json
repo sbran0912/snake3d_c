@@ -36,7 +36,7 @@
   },
   {
     "label": "CMake: Clang-Tidy",
-    "command": "cmake -S . -B build -G Ninja && clang-tidy -p build app/*.c && clang-tidy -p build lib3d/*.c",
+    "command": "cmake -S . -B build -G Ninja && clang-tidy -p build app/*.c lib3d/*.c",
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always"

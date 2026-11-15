@@ -88,11 +88,14 @@ double l3d_random_float(double lo, double hi);// in [lo, hi)
 float  limit_num(float number, float limit);  // begrenzt den Betrag, Vorzeichen bleibt
 
 //Dynamisches Array
+// arr_create liefert NULL, wenn kein Speicher verfuegbar ist.
+// arr_push gibt bei fehlgeschlagenem Wachstum das unveraenderte Array zurueck
+// (das Element wird dann nicht angehaengt).
 void  *arr_create(size_t capacity, size_t elemsize);
 size_t arr_len(void *arr);
 size_t arr_cap(void *arr);
 void  *arr_push(void *arr, void *val);
-void   arr_pop(void *arr, size_t idx);
+void   arr_pop(void *arr, size_t idx);  // entfernt Element idx; no-op bei idx >= Laenge
 void  *arr_reduce(void *arr);
 void   arr_delete(void *arr);  // setzt Laenge auf 0 (Kapazitaet bleibt)
 void   arr_free(void *arr);

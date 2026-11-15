@@ -1016,28 +1016,35 @@ void l3d_circle(double x, double y, double z, double radius, DrawStyle style,
 
 void l3d_polygon(const double *pts, int nfloats, DrawStyle style,
                  const Mat4x4 *model) {
-    if (nfloats < 4) return;
+    // Ein Polygon braucht mindestens 3 Vertices (9 Floats). Sonst waere
+    // (n - 2) negativ und die Dreiecksliste ungueltig.
+    if (!pts || nfloats < 9) return;
     int n = nfloats / 3;
 
     if (style == STYLE_FILL || style == STYLE_BOTH) {
-        float *fillVerts = malloc((size_t)(n - 2) * 9 * sizeof(float));
-        int fi = 0;
-        for (int i = 1; i < n - 1; i++) {
-            fillVerts[fi++] = (float)pts[0];
-            fillVerts[fi++] = (float)pts[1];
-            fillVerts[fi++] = (float)pts[2];
-            fillVerts[fi++] = (float)pts[i * 3];
-            fillVerts[fi++] = (float)pts[i * 3 + 1];
-            fillVerts[fi++] = (float)pts[i * 3 + 2];
-            fillVerts[fi++] = (float)pts[i * 3 + 3];
-            fillVerts[fi++] = (float)pts[i * 3 + 4];
-            fillVerts[fi++] = (float)pts[i * 3 + 5];
+        int tri_count = n - 2;          // n >= 3 durch den Guard oben
+        if (tri_count < 1) return;
+        int nfill = tri_count * 9;
+        float *fillVerts = malloc((size_t) nfill * sizeof(float));
+        if (!fillVerts) return;
+        for (int t = 0; t < tri_count; t++) {
+            float *dst = &fillVerts[t * 9];
+            dst[0] = (float)pts[0];
+            dst[1] = (float)pts[1];
+            dst[2] = (float)pts[2];
+            dst[3] = (float)pts[(t + 1) * 3];
+            dst[4] = (float)pts[(t + 1) * 3 + 1];
+            dst[5] = (float)pts[(t + 1) * 3 + 2];
+            dst[6] = (float)pts[(t + 2) * 3];
+            dst[7] = (float)pts[(t + 2) * 3 + 1];
+            dst[8] = (float)pts[(t + 2) * 3 + 2];
         }
-        submit(GL_TRIANGLES, fillVerts, (n - 2) * 9, 0, model);
+        submit(GL_TRIANGLES, fillVerts, nfill, 0, model);
         free(fillVerts);
     }
     if (style == STYLE_STROKE || style == STYLE_BOTH) {
         float *strokeVerts = malloc((size_t) nfloats * sizeof(float));
+        if (!strokeVerts) return;
         for (int i = 0; i < nfloats; i++) strokeVerts[i] = (float) pts[i];
         submit(GL_LINE_LOOP, strokeVerts, nfloats, 1, model);
         free(strokeVerts);
@@ -1504,16 +1511,22 @@ Face *build_faces(const Mesh *mesh, int *out_count) {
     int n = mesh->tri_floats / 9;
     if (n < 0) n = 0;
     Face *faces = malloc((size_t)(n > 0 ? n : 1) * sizeof(Face));
-    int cnt = 0;
-    for (int i = 0; i + 8 < mesh->tri_floats; i += 9) {
+    if (!faces) {
+        if (out_count) *out_count = 0;
+        return NULL;
+    }
+    // Genau n Dreiecke: die Schleifenzahl entspricht damit direkt der
+    // Allocation oben (macht die Grenzen auch fuer den Analyzer sichtbar).
+    for (int t = 0; t < n; t++) {
+        int i = t * 9;
         Face f;
         f.a = vec3(mesh->triangles[i + 0], mesh->triangles[i + 1], mesh->triangles[i + 2]);
         f.b = vec3(mesh->triangles[i + 3], mesh->triangles[i + 4], mesh->triangles[i + 5]);
         f.c = vec3(mesh->triangles[i + 6], mesh->triangles[i + 7], mesh->triangles[i + 8]);
         f.normal = vec3_normalize(vec3_cross(vec3_sub(f.b, f.a), vec3_sub(f.c, f.a)));
-        faces[cnt++] = f;
+        faces[t] = f;
     }
-    if (out_count) *out_count = cnt;
+    if (out_count) *out_count = n;
     return faces;
 }
 
@@ -1829,11 +1842,28 @@ int load_obj(const char *path, Mesh *out) {
         fprintf(stderr, "OBJ: Datei '%s' nicht gefunden\n", path);
         return L3D_OBJ_ERR_FILE;
     }
-    fseek(f, 0, SEEK_END);
+    // ftell liefert bei nicht-seekbaren Quellen -1. Ohne diese Pruefung
+    // wuerde (size_t)(-1) + 2 zu einem 1-Byte-Puffer und fread() mit
+    // SIZE_MAX Bytes darueber hinausschreiben.
+    if (fseek(f, 0, SEEK_END) != 0) {
+        fclose(f);
+        return L3D_OBJ_ERR_FILE;
+    }
     long sz = ftell(f);
-    fseek(f, 0, SEEK_SET);
+    if (sz < 0) {
+        fclose(f);
+        return L3D_OBJ_ERR_FILE;
+    }
+    if (fseek(f, 0, SEEK_SET) != 0) {
+        fclose(f);
+        return L3D_OBJ_ERR_FILE;
+    }
 
     char *buf = malloc((size_t) sz + 2);
+    if (!buf) {
+        fclose(f);
+        return L3D_OBJ_ERR_MEM;
+    }
     size_t got = fread(buf, 1, (size_t) sz, f);
     fclose(f);
     if (got != (size_t) sz) {
