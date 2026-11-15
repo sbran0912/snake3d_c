@@ -11,9 +11,6 @@ BINDIR = bin
 OBJS = $(patsubst %.c,$(OBJDIR)/%.o,$(SRCS))
 TARGET = $(BINDIR)/$(APPNAME)
 
-# CMake/Ninja-Build (clang) - parallel zum gcc-Build oben.
-BUILDDIR = build
-
 .PHONY: all clean run tidy debug init
 
 all: $(TARGET)
@@ -41,12 +38,3 @@ debug: clean
 init: clean
 	bear -- $(MAKE) -B $(OBJS) CFLAGS="$(CFLAGS) -fsyntax-only"
 	@sed -i 's/"-fsyntax-only",//g' compile_commands.json
-
-
-# clang-tidy ueber die Compile-Datenbank aus build/.
-# cmake-init stellt sicher, dass build/compile_commands.json existiert.
-tidy: debug
-	@echo "----------------------------"
-	@echo "Prüfen auf Speicherfehler..."
-	@echo "----------------------------"
-	clang-tidy -p $(BINDIR) lib3d/*.c app/*.c

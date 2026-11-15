@@ -1,5 +1,0 @@
-# clangd-Konfiguration
-#
-# Sagt clangd, wo die Compile-Datenbank liegt.
-CompileFlags:
-  CompilationDatabase: ./
