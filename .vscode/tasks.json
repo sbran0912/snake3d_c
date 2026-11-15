@@ -1,0 +1,66 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "gcc: build (Release)",
+      "type": "shell",
+      "command": "make clean && make -j$(nproc)",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": { "LC_ALL": "C" }
+      },
+      "problemMatcher": ["$gcc"],
+      "group": { "kind": "build", "isDefault": true },
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared",
+        "clear": true
+      }
+    },
+    {
+      "label": "gcc: build (Debug)",
+      "type": "shell",
+      "command": "make debug -j$(nproc)",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": { "LC_ALL": "C" }
+      },
+      "problemMatcher": ["$gcc"],
+      "group": "build",
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared",
+        "clear": true
+      }
+    },
+    {
+      "label": "gcc: clean",
+      "type": "shell",
+      "command": "make clean",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared",
+        "clear": true
+      }
+    },
+    {
+      "label": "gcc: run",
+      "type": "shell",
+      "command": "./bin/snake",
+      "dependsOn": "gcc: build (Release)",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      }
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 # Paralleler Build mit gcc und clang (cmake).
 CC = gcc
 CFLAGS = -Wall -Wextra -O2 -std=c17 -Ilib3d
+CFLAGS_DEBUG = -Wall -Wextra -O0 -g3 -std=c17 -Ilib3d
 LDFLAGS = -lglfw -lGL -lm
 
 APPNAME = snake
@@ -13,7 +14,7 @@ TARGET = $(BINDIR)/$(APPNAME)
 # CMake/Ninja-Build (clang) - parallel zum gcc-Build oben.
 BUILDDIR = build
 
-.PHONY: all clean run cmake cmake-debug cmake-clean cmake-init cmake-run cmake-tidy
+.PHONY: all clean run cmake cmake-debug cmake-clean cmake-init cmake-run cmake-tidy debug
 
 all: $(TARGET)
 
@@ -30,6 +31,12 @@ clean:
 
 run: $(TARGET)
 	./$(TARGET)
+
+# Debug-Build mit gcc (-O0 -g3). Nutzt dieselben Verzeichnisse wie der
+# Release-Build (obj/, bin/), deshalb wird vorher sauber geloescht:
+# Wechsel zwischen Release und Debug immer ueber `make clean`.
+debug: clean
+	$(MAKE) all CFLAGS="$(CFLAGS_DEBUG)"
 
 # cmake builds
 cmake:
