@@ -14,7 +14,7 @@ TARGET = $(BINDIR)/$(APPNAME)
 # CMake/Ninja-Build (clang) - parallel zum gcc-Build oben.
 BUILDDIR = build
 
-.PHONY: all clean run cmake cmake-debug cmake-clean cmake-init cmake-run cmake-tidy debug
+.PHONY: all clean run tidy debug init
 
 all: $(TARGET)
 
@@ -38,29 +38,15 @@ run: $(TARGET)
 debug: clean
 	$(MAKE) all CFLAGS="$(CFLAGS_DEBUG)"
 
-# cmake builds
-cmake:
-	cmake -S . -B $(BUILDDIR) -G Ninja -DCMAKE_BUILD_TYPE=Release
-	cmake --build $(BUILDDIR)
+init: clean
+	bear -- $(MAKE) -B $(OBJS) CFLAGS="$(CFLAGS) -fsyntax-only"
+	@sed -i 's/"-fsyntax-only",//g' compile_commands.json
 
-# Debug-Build (-O0 -g3), Binary unter build/snake.
-cmake-debug:
-	cmake -S . -B $(BUILDDIR) -G Ninja -DCMAKE_BUILD_TYPE=Debug
-	cmake --build $(BUILDDIR)
-
-cmake-clean:
-	rm -rf $(BUILDDIR)
-
-cmake-run: cmake
-	./$(BUILDDIR)/$(APPNAME)
-
-cmake-init:
-	cmake -S . -B $(BUILDDIR) -G Ninja
 
 # clang-tidy ueber die Compile-Datenbank aus build/.
 # cmake-init stellt sicher, dass build/compile_commands.json existiert.
-cmake-tidy: cmake-init
+tidy: debug
 	@echo "----------------------------"
 	@echo "Prüfen auf Speicherfehler..."
 	@echo "----------------------------"
-	clang-tidy -p $(BUILDDIR) lib3d/*.c app/*.c
+	clang-tidy -p $(BINDIR) lib3d/*.c app/*.c

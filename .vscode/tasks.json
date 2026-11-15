@@ -48,6 +48,20 @@
       }
     },
     {
+      "label": "gcc: init (compile_commands)",
+      "type": "shell",
+      "command": "make init",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared",
+        "clear": true
+      }
+    },
+    {
       "label": "gcc: run",
       "type": "shell",
       "command": "./bin/snake",

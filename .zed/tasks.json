@@ -1,35 +1,35 @@
 [
   {
-    "label": "CMake: Init (Ninja)",
-    "command": "cmake -S . -B build -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++",
+    "label": "Make: Build Release",
+    "command": "make",
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always"
   },
   {
-    "label": "CMake: Build Release",
-    "command": "cmake -S . -B build -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release && cmake --build build",
+    "label": "Make: Build Debug",
+    "command": "make debug",
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always"
   },
   {
-    "label": "CMake: Run (Release)",
-    "command": "cmake -S . -B build -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release && cmake --build build && ./build/snake",
+    "label": "Make: Run",
+    "command": "make run",
     "use_new_terminal": true,
     "allow_concurrent_runs": false,
     "reveal": "always"
   },
   {
-    "label": "CMake: Clean",
-    "command": "rm -rf build",
+    "label": "Make: Clean",
+    "command": "make clean",
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always"
   },
   {
-    "label": "CMake: Clang-Tidy",
-    "command": "cmake -S . -B build -G Ninja -DCMAKE_C_COMPILER=clang && clang-tidy -p build app/*.c lib3d/*.c",
+    "label": "Make: Init (compile_commands)",
+    "command": "make init",
     "use_new_terminal": false,
     "allow_concurrent_runs": false,
     "reveal": "always"
