@@ -24,8 +24,8 @@ typedef struct { double x, z; } CellPos;
 // (row, col). col -> X-Achse, row -> Z-Achse, Feldmitte +0.5-Verschiebung.
 CellPos grid_cell_center(const Grid *g, int row, int col);
 
-// grid_push_cubes haengt fuer jede Zelle eine Wuerfel-Instanz der Hoehe
-// `height` an und liefert das (evtl. verschobene) arr_*-Array zurueck.
-void *grid_push_cubes(void *arr, const Grid *g, const Cell *cells, size_t count, double height, ColorState color);
+// grid_push_cubes haengt fuer jede Zelle eine Wuerfel-Instanz an
+void *grid_push_cubes(void *arr, const Grid *g, const Cell *cells, size_t count,
+                      double height, ColorState color);
 
 #endif // GRID_H

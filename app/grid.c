@@ -1,7 +1,20 @@
 #include "grid.h"
 
 #include "lib3d.h"
+#include <stddef.h>
 
+/*
+    CellPos grid_cell_center(const Grid *g, int row, int col) {
+        double half = ((double) g->edgeCells * g->cellSize) / 2.0;
+        CellPos p;
+        p.x = -half + ((double) col + 0.5) * g->cellSize;
+        p.z = -half + ((double) row + 0.5) * g->cellSize;
+        return p;
+    }
+
+ */
+
+// Gibt exakt die Mitte der Zelle zurück (kein scale nötig)
 CellPos grid_cell_center(const Grid *g, int row, int col) {
     double half = ((double) g->edgeCells * g->cellSize) / 2.0;
     CellPos p;

@@ -1,5 +1,6 @@
 #include <stddef.h>
 #include <stdio.h>
+#include <time.h>
 
 #include "lib3d.h"
 #include "lib3d_util.h"
@@ -14,11 +15,10 @@
 // Konvention: col zeigt in X-Richtung, row in Z-Richtung. Das Gitter
 // liegt zentriert um den Ursprung in der XZ-Ebene (y=0).
 
-#define EDGE_CELLS  40                            // Felder pro Achse
-#define CELL_SIZE   1.0                           // Kantenlaenge eines Feldes
+#define EDGE_CELLS  300                            // Felder pro Achse
+#define CELL_SIZE   0.5                           // Kantenlaenge eines Feldes
 #define EDGE_LENGTH (EDGE_CELLS * CELL_SIZE)      // Kantenlaenge des Gitters
-#define CUBE_SIZE   0.9                           // Wuerfelkante
-#define SNAKE_COUNT 200
+#define CUBE_SIZE   2.0                           // Wuerfelkante
 
 // --- Globale Szenen-/Loop-Daten ---
 static Scene scene;
@@ -28,6 +28,7 @@ static ShapeStyle gridStyle;
 static ShapeStyle cubeStyle;
 static Instance *instances    = NULL; // arr_* von Instance
 
+
 // Snake
 static Snake snake;
 
@@ -36,18 +37,31 @@ static Grid grid = { .edgeCells = EDGE_CELLS, .cellSize = CELL_SIZE };
 
 // Loop (Ersatz fuer die draw-Closure in Go).
 static void draw(void) {
+
     // Pfeiltasten abfragen und im Terminal ausgeben (je Tastendruck einmal).
     if (l3d_key_pressed(KEY_UP))    printf("Pfeiltaste: oben\n");
     if (l3d_key_pressed(KEY_DOWN))  printf("Pfeiltaste: unten\n");
-    if (l3d_key_pressed(KEY_LEFT))  printf("Pfeiltaste: links\n");
-    if (l3d_key_pressed(KEY_RIGHT)) printf("Pfeiltaste: rechts\n");
+    if (l3d_key_pressed(KEY_LEFT)) {
+        grow_snake(&snake, EDGE_CELLS);
+        printf("Pfeiltaste: links\n");
+    }
+    if (l3d_key_pressed(KEY_RIGHT)) {
+        printf("Pfeiltaste: rechts\n");
+    }
+
+    move_snake(&snake, EDGE_CELLS);
 
     l3d_begin_scene(scene);
 
-    // Bodengitter (XZ-Ebene bei y=0) aus dem geteilten Mesh.
+    // Bodengitter einmal
     l3d_draw_mesh(gridMesh, gridStyle, NULL);
 
-    // Die Wuerfel der ersten Zeile in EINEM Instancing-Draw-Call.
+    // Alle Segmente als Instanz-Würfel aufbauen und zeichnen
+    arr_delete(instances);
+    instances = grid_push_cubes(instances, &grid, snake.segments,
+                                arr_len(snake.segments), CUBE_SIZE,
+                                parse_hex("#87CEEB"));
+
     l3d_draw_mesh_instanced(cubeMesh, cubeStyle,
                            (const Instance *) instances,
                            (int) arr_len(instances));
@@ -55,7 +69,7 @@ static void draw(void) {
 
 int main(void) {
     scene = scene_new();
-    scene.cam.pos    = vec3(17, 24, 32);
+    scene.cam.pos    = vec3(25, 45, 40);   // weiter von oben auf das Spielfeld
     scene.cam.target = vec3(0, 0, 0);
     scene.cam.up     = vec3(0, 1, 0);
     scene.cam.far    = 500;
@@ -72,11 +86,8 @@ int main(void) {
     cubeStyle.lineWidth = 1;
     cubeStyle.mode      = STYLE_BOTH;
 
-    snake = init_snake(10, 10, 1, 1);
-    instances = arr_create(SNAKE_COUNT, sizeof(Instance));
-    instances = grid_push_cubes(instances, &grid, snake.segments,
-                                arr_len(snake.segments), CUBE_SIZE,
-                                parse_hex("#87CEEB"));
+    snake = init_snake(100, 0, 0, 1, 1);
+    instances = arr_create(10, sizeof(Instance));
 
     int ok = l3d_init();
     if (!ok) {
