@@ -15,7 +15,9 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-// GLSL-SHADER  (Port von shader.go)
+/* ==================================================================
+ * GLSL-SHADER  (Port von shader.go)
+ * ================================================================== */
 
 static const char *VERT_SRC =
     "#version 330 core\n"
@@ -82,7 +84,9 @@ static const char *FRAG_SRC =
     "  fragColor = mix(vec4(base, uColor.a * vColor.a), uFogColor, fog_t);\n"
     "}\n";
 
-// FIXE PUFFER  (keine dynamischen Datenstrukturen im Renderer)
+/* ==================================================================
+ * FIXE PUFFER  (keine dynamischen Datenstrukturen im Renderer)
+ * ================================================================== */
 #define MAX_BATCH_VERTS (1u << 19)   // ~74k Vertices (2 MiB)
 #define MAX_BATCH_CMDS  8192
 #define MAX_INST_GEOM   (1u << 15)   // Osteo-Geometrie der Instanzen
@@ -130,7 +134,7 @@ typedef struct {
     ColorState grad2;
 } DrawState;
 
-// --- Fenster / GL ---
+/* --- Fenster / GL --- */
 static GLFWwindow *window    = NULL;
 static GLuint      program   = 0;
 static GLuint      vao       = 0;
@@ -140,33 +144,33 @@ static GLuint      vboInst   = 0;
 static int         frameW    = 0;
 static int         frameH    = 0;
 
-// --- Shader-Locations ---
+/* --- Shader-Locations --- */
 static GLint locPos, locColorAttr, locInstModel, locInstColor;
 static GLint locInstanced, locView, locProjection, locPointSize;
 static GLint locMode, locColor, locColor2, locTime;
 static GLint locCenter, locRadius, locFogNear, locFogFar, locFogColor;
 static GLint locLighted, locLightDir;
 
-// --- Animation ---
+/* --- Animation --- */
 static int    looping   = 1;
 static double startTime = 0.0;
 
-// --- Vollbild ---
+/* --- Vollbild --- */
 static int fullscreen             = 0;
 static int toggleFullscreenWanted = 0;
 static int windowedPos[2];
 static int windowedSize[2];
 
-// --- Maus ---
+/* --- Maus --- */
 static double mouseX      = 0.0;
 static double mouseY      = 0.0;
 static int    mouseStatus = 0;
 
-// --- Tastatur ---
+/* --- Tastatur --- */
 static int keyDown[K_MAX_KEYS];
 static int keyPressed[K_MAX_KEYS];
 
-// --- Zeichenzustand ---
+/* --- Zeichenzustand --- */
 static DrawState state = {
     {1, 1, 1, 1},  // fill
     {0, 0, 0, 1},  // stroke
@@ -175,7 +179,7 @@ static DrawState state = {
     {0, 0, 0, 1},  // grad2
 };
 
-// --- Batching ---
+/* --- Batching --- */
 static float   batchVerts[MAX_BATCH_VERTS];
 static int     batchVertCount = 0;
 static DrawCmd batchCmds[MAX_BATCH_CMDS];
@@ -183,7 +187,7 @@ static int     batchCmdCount  = 0;
 static int     batchCapBytes  = 0;   // aktuell allozierte Byte-Groesse des VBO
 static int     batchSort      = 0;
 
-// --- Instancing ---
+/* --- Instancing --- */
 static float   instGeom[MAX_INST_GEOM];
 static int     instGeomCount = 0;
 static float   instData[MAX_INST_DATA];
@@ -193,7 +197,7 @@ static int     instCmdCount  = 0;
 static int     geomCapBytes  = 0;
 static int     instCapBytes  = 0;
 
-// --- Zuletzt gesetzte Uniform-Werte (Batch-Snapshot) ---
+/* --- Zuletzt gesetzte Uniform-Werte (Batch-Snapshot) --- */
 static const float identity16[16] = {
     1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1
 };
@@ -203,7 +207,9 @@ static double pointSizeVal = 4.0;
 static double gradCenter[3] = {0, 0, 0};
 static double gradRadius    = 1.0;
 
-// HILFSFUNKTIONEN (intern)
+/* ==================================================================
+ * HILFSFUNKTIONEN (intern)
+ * ================================================================== */
 
 // Zeilen-major double[4][4] -> Spalten-major float[16] fuer OpenGL.
 static void flatten_matrix(const Mat4x4 *m, float *out) {
@@ -275,7 +281,7 @@ static int cmd_key_less(const DrawCmd *a, const DrawCmd *b) {
     return 0;
 }
 
-// --- Sortier-Kontext fuer qsort (ein Thread, daher static ok) ---
+/* --- Sortier-Kontext fuer qsort (ein Thread, daher static ok) --- */
 static DrawCmd *sort_cmds = NULL;      // aktuelle Befehlstabelle
 
 static int cmd_order_cmp(const void *pa, const void *pb) {
@@ -306,7 +312,9 @@ static void merge_block(float *dstData, int *dstLen, DrawCmd *dstCmds,
     }
 }
 
-// BATCHING - SAMMELN & ZEICHNEN (Kern des Renderers)
+/* ==================================================================
+ * BATCHING - SAMMELN & ZEICHNEN (Kern des Renderers)
+ * ================================================================== */
 
 // Sammelt eine Immediate-Primitive im Frame-Batch. Die Modell-Matrix wird
 // in die Vertices gebacken und die Farbe pro Vertex abgelegt.
@@ -672,7 +680,9 @@ void l3d_compact_batch(void) {
     batchCmdCount = scratchCmdCount;
 }
 
-// MAUS / FENSTER (intern)
+/* ==================================================================
+ * MAUS / FENSTER (intern)
+ * ================================================================== */
 
 static void on_cursor_pos(GLFWwindow *win, double x, double y) {
     (void) win;
@@ -712,7 +722,9 @@ static void on_framebuffer_size(GLFWwindow *win, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-// OEFFENTLICHE API - Fenster & Eingabe
+/* ==================================================================
+ * OEFFENTLICHE API - Fenster & Eingabe
+ * ================================================================== */
 
 int l3d_get_width(void)  { return frameW; }
 int l3d_get_height(void) { return frameH; }
@@ -770,7 +782,9 @@ int l3d_key_pressed(int key) {
     return 0;
 }
 
-// OEFFENTLICHE API - Matrizen & Szene
+/* ==================================================================
+ * OEFFENTLICHE API - Matrizen & Szene
+ * ================================================================== */
 
 void l3d_set_projection(const Mat4x4 *m) {
     flatten_matrix(m, projUniform);
@@ -823,7 +837,9 @@ void l3d_set_light_direction(double x, double y, double z) {
     glUniform3f(locLightDir, (float)x, (float)y, (float)z);
 }
 
-// OEFFENTLICHE API - Zeichenzustand
+/* ==================================================================
+ * OEFFENTLICHE API - Zeichenzustand
+ * ================================================================== */
 
 void l3d_fill_color(ColorState color)        { state.fill = color; }
 void l3d_fill_color_input(ColorInput color)  { l3d_fill_color(color.color); }
@@ -842,7 +858,9 @@ void l3d_background(ColorState color) {
 
 void l3d_background_input(ColorInput color)  { l3d_background(color.color); }
 
-// ZEICHEN-FASSADE (Port von draw.go)
+/* ==================================================================
+ * ZEICHEN-FASSADE (Port von draw.go)
+ * ================================================================== */
 
 static void apply_style(ColorInput stroke, ColorInput fill,
                         double lineWidth, double pointSize) {
@@ -915,7 +933,9 @@ void l3d_draw_polygon(const double *pts, int nfloats, ShapeStyle style,
     l3d_polygon(pts, nfloats, style.mode, model);
 }
 
-// IMMEDIATE-PRIMITIVE (Port von renderer.go)
+/* ==================================================================
+ * IMMEDIATE-PRIMITIVE (Port von renderer.go)
+ * ================================================================== */
 
 void l3d_point_size(double px) {
     pointSizeVal = px;
@@ -1016,42 +1036,37 @@ void l3d_circle(double x, double y, double z, double radius, DrawStyle style,
 
 void l3d_polygon(const double *pts, int nfloats, DrawStyle style,
                  const Mat4x4 *model) {
-    // Ein Polygon braucht mindestens 3 Vertices (9 Floats). Sonst waere
-    // (n - 2) negativ und die Dreiecksliste ungueltig.
-    if (!pts || nfloats < 9) return;
+    if (nfloats < 4) return;
     int n = nfloats / 3;
 
     if (style == STYLE_FILL || style == STYLE_BOTH) {
-        int tri_count = n - 2;          // n >= 3 durch den Guard oben
-        if (tri_count < 1) return;
-        int nfill = tri_count * 9;
-        float *fillVerts = malloc((size_t) nfill * sizeof(float));
-        if (!fillVerts) return;
-        for (int t = 0; t < tri_count; t++) {
-            float *dst = &fillVerts[t * 9];
-            dst[0] = (float)pts[0];
-            dst[1] = (float)pts[1];
-            dst[2] = (float)pts[2];
-            dst[3] = (float)pts[(t + 1) * 3];
-            dst[4] = (float)pts[(t + 1) * 3 + 1];
-            dst[5] = (float)pts[(t + 1) * 3 + 2];
-            dst[6] = (float)pts[(t + 2) * 3];
-            dst[7] = (float)pts[(t + 2) * 3 + 1];
-            dst[8] = (float)pts[(t + 2) * 3 + 2];
+        float *fillVerts = malloc((size_t)(n - 2) * 9 * sizeof(float));
+        int fi = 0;
+        for (int i = 1; i < n - 1; i++) {
+            fillVerts[fi++] = (float)pts[0];
+            fillVerts[fi++] = (float)pts[1];
+            fillVerts[fi++] = (float)pts[2];
+            fillVerts[fi++] = (float)pts[i * 3];
+            fillVerts[fi++] = (float)pts[i * 3 + 1];
+            fillVerts[fi++] = (float)pts[i * 3 + 2];
+            fillVerts[fi++] = (float)pts[i * 3 + 3];
+            fillVerts[fi++] = (float)pts[i * 3 + 4];
+            fillVerts[fi++] = (float)pts[i * 3 + 5];
         }
-        submit(GL_TRIANGLES, fillVerts, nfill, 0, model);
+        submit(GL_TRIANGLES, fillVerts, (n - 2) * 9, 0, model);
         free(fillVerts);
     }
     if (style == STYLE_STROKE || style == STYLE_BOTH) {
         float *strokeVerts = malloc((size_t) nfloats * sizeof(float));
-        if (!strokeVerts) return;
         for (int i = 0; i < nfloats; i++) strokeVerts[i] = (float) pts[i];
         submit(GL_LINE_LOOP, strokeVerts, nfloats, 1, model);
         free(strokeVerts);
     }
 }
 
-// KAMERA- UND SZENEN-BUENDEL
+/* ==================================================================
+ * KAMERA- UND SZENEN-BUENDEL
+ * ================================================================== */
 
 Mat4x4 camera_view(Camera c) {
     return mat4_lookat(c.pos, c.target, c.up);
@@ -1078,7 +1093,9 @@ Scene scene_new(void) {
     return s;
 }
 
-// SHADER-HILFEN  (Port von shader.go)
+/* ==================================================================
+ * SHADER-HILFEN  (Port von shader.go)
+ * ================================================================== */
 
 static GLuint compile_shader(GLenum type, const char *src) {
     GLuint shader = glCreateShader(type);
@@ -1122,7 +1139,9 @@ static GLuint create_program(const char *vs, const char *fs) {
     return p;
 }
 
-// SETUP & ANIMATIONS-SCHLEIFE (Port von renderer.go Init/StartAnimation)
+/* ==================================================================
+ * SETUP & ANIMATIONS-SCHLEIFE (Port von renderer.go Init/StartAnimation)
+ * ================================================================== */
 
 static void default_window_size(int *w, int *h) {
     const int wantW = 1280, wantH = 800;
@@ -1300,11 +1319,17 @@ void l3d_start_animation(void (*fn)(void)) {
     glfwTerminate();
 }
 
-// MESH-BAUSTEINE  (Port von mesh.go)
-//
-// Die erzeugten Arrays werden mit malloc allokiert und mit mesh_free()
-// wieder freigegeben. Zum Aufbau werden in jeder Funktion die exakten
-// Groessen vorab berechnet - es gibt KEINE dynamischen Zwischenspeicher.
+/* ==================================================================
+ * EHEMALS lib3d_mesh.c - in lib3d.c eingebunden.
+ * ================================================================== */
+
+/* ==================================================================
+ * MESH-BAUSTEINE  (Port von mesh.go)
+ *
+ * Die erzeugten Arrays werden mit malloc allokiert und mit mesh_free()
+ * wieder freigegeben. Zum Aufbau werden in jeder Funktion die exakten
+ * Groessen vorab berechnet - es gibt KEINE dynamischen Zwischenspeicher.
+ * ================================================================== */
 
 static void tri_push(float *dst, int *i, Vec3 a, Vec3 b, Vec3 c) {
     dst[(*i)++] = (float)a.x; dst[(*i)++] = (float)a.y; dst[(*i)++] = (float)a.z;
@@ -1505,28 +1530,24 @@ Mesh scale_mesh(Mesh mesh, double s) {
     return out;
 }
 
-// BODY / FACES  (Port von body.go)
+/* ==================================================================
+ * BODY / FACES  (Port von body.go)
+ * ================================================================== */
 
 Face *build_faces(const Mesh *mesh, int *out_count) {
     int n = mesh->tri_floats / 9;
     if (n < 0) n = 0;
     Face *faces = malloc((size_t)(n > 0 ? n : 1) * sizeof(Face));
-    if (!faces) {
-        if (out_count) *out_count = 0;
-        return NULL;
-    }
-    // Genau n Dreiecke: die Schleifenzahl entspricht damit direkt der
-    // Allocation oben (macht die Grenzen auch fuer den Analyzer sichtbar).
-    for (int t = 0; t < n; t++) {
-        int i = t * 9;
+    int cnt = 0;
+    for (int i = 0; i + 8 < mesh->tri_floats; i += 9) {
         Face f;
         f.a = vec3(mesh->triangles[i + 0], mesh->triangles[i + 1], mesh->triangles[i + 2]);
         f.b = vec3(mesh->triangles[i + 3], mesh->triangles[i + 4], mesh->triangles[i + 5]);
         f.c = vec3(mesh->triangles[i + 6], mesh->triangles[i + 7], mesh->triangles[i + 8]);
         f.normal = vec3_normalize(vec3_cross(vec3_sub(f.b, f.a), vec3_sub(f.c, f.a)));
-        faces[t] = f;
+        faces[cnt++] = f;
     }
-    if (out_count) *out_count = n;
+    if (out_count) *out_count = cnt;
     return faces;
 }
 
@@ -1676,7 +1697,9 @@ void body_free(Body *b) {
     b->face_count = 0;
 }
 
-// MESH-LADEN  (Port von mesh_io.go, Wavefront OBJ)
+/* ==================================================================
+ * MESH-LADEN  (Port von mesh_io.go, Wavefront OBJ)
+ * ================================================================== */
 
 typedef struct {
     // Anzahl-Phase
@@ -1842,28 +1865,11 @@ int load_obj(const char *path, Mesh *out) {
         fprintf(stderr, "OBJ: Datei '%s' nicht gefunden\n", path);
         return L3D_OBJ_ERR_FILE;
     }
-    // ftell liefert bei nicht-seekbaren Quellen -1. Ohne diese Pruefung
-    // wuerde (size_t)(-1) + 2 zu einem 1-Byte-Puffer und fread() mit
-    // SIZE_MAX Bytes darueber hinausschreiben.
-    if (fseek(f, 0, SEEK_END) != 0) {
-        fclose(f);
-        return L3D_OBJ_ERR_FILE;
-    }
+    fseek(f, 0, SEEK_END);
     long sz = ftell(f);
-    if (sz < 0) {
-        fclose(f);
-        return L3D_OBJ_ERR_FILE;
-    }
-    if (fseek(f, 0, SEEK_SET) != 0) {
-        fclose(f);
-        return L3D_OBJ_ERR_FILE;
-    }
+    fseek(f, 0, SEEK_SET);
 
     char *buf = malloc((size_t) sz + 2);
-    if (!buf) {
-        fclose(f);
-        return L3D_OBJ_ERR_MEM;
-    }
     size_t got = fread(buf, 1, (size_t) sz, f);
     fclose(f);
     if (got != (size_t) sz) {

@@ -46,6 +46,8 @@ static void draw(void) {
         printf("Pfeiltaste: links\n");
     }
     if (l3d_key_pressed(KEY_RIGHT)) {
+        snake.directionX = 1;
+        snake.directionY = 0;
         printf("Pfeiltaste: rechts\n");
     }
 
@@ -69,9 +71,9 @@ static void draw(void) {
 
 int main(void) {
     scene = scene_new();
-    scene.cam.pos    = vec3(25, 45, 40);   // weiter von oben auf das Spielfeld
+    scene.cam.pos    = vec3(0, 50, 100);
     scene.cam.target = vec3(0, 0, 0);
-    scene.cam.up     = vec3(0, 1, 0);
+    scene.cam.up     = vec3(0, 1, 1);
     scene.cam.far    = 500;
 
     // Meshes EINMAL erzeugen und wiederverwenden.

@@ -3,7 +3,9 @@
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 
-// Funktionszeiger-Definitionen + Loader (glfwGetProcAddress).
+/* ==================================================================
+ * Funktionszeiger-Definitionen + Loader (glfwGetProcAddress).
+ * ================================================================== */
 
 #define L3D_GL_DEFN(name) PFN_##name name = NULL;
 L3D_GL_FUNCS(L3D_GL_DEFN)

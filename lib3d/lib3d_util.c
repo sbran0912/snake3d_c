@@ -4,33 +4,10 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stddef.h>
 
-
-// ALLGEMEINE HELPER-FUNKTIONEN
-size_t SafeTextCopy(char *dst, size_t dst_size, const char *src)
-{
-    size_t bytes = 0;
-
-    if ((src != NULL) && (dst != NULL) && (dst_size > 0))
-    {
-        // Maximal (dst_size - 1) Zeichen kopieren, um Platz für '\0' zu lassen
-        while ((*src != '\0') && (bytes < (dst_size - 1)))
-        {
-            *dst = *src;
-            dst++;
-            src++;
-            bytes++;
-        }
-
-        // Garantiert eine saubere Null-Terminierung am Ende
-        *dst = '\0';
-    }
-
-    return bytes;
-}
-
-// VEC3  (Port von vec.go)
+/* ==================================================================
+ * VEC3  (Port von vec.go)
+ * ================================================================== */
 
 Vec3 vec3(double x, double y, double z) {
     Vec3 v = {x, y, z};
@@ -123,7 +100,9 @@ Vec3 vec3_transform_dir(Vec3 v, const Mat4x4 *m) {
         v.x * m->m[2][0] + v.y * m->m[2][1] + v.z * m->m[2][2]);
 }
 
-// MATRIX  (Port von mat4.go, zeilen-major double[4][4])
+/* ==================================================================
+ * MATRIX  (Port von mat4.go, zeilen-major double[4][4])
+ * ================================================================== */
 
 Mat4x4 mat4_identity(void) {
     Mat4x4 r = {0};
@@ -216,7 +195,9 @@ Mat4x4 mat4_perspective(double fovY, double aspect, double near, double far) {
     return r;
 }
 
-// FARBE  (Port von color.go)
+/* ==================================================================
+ * FARBE  (Port von color.go)
+ * ================================================================== */
 
 ColorState parse_hex(const char *hex) {
     const char *h = hex;
@@ -275,7 +256,9 @@ ColorInput color_rgba(double r, double g, double b, double a) {
 }
 ColorInput color_of(ColorState c)              { return (ColorInput){1, c}; }
 
-// MATH-HILFEN  (Port von math.go)
+/* ==================================================================
+ * MATH-HILFEN  (Port von math.go)
+ * ================================================================== */
 
 Vec2 project(double fov, Vec3 v) {
     double s = fov / (fov + v.z);
@@ -302,9 +285,9 @@ float limit_num(float number, float limit) {
     return numberMag * vorzeichen;
 }
 
+//dynamisches Array
 void* arr_create(size_t capacity, size_t elemsize) {
     size_t *raw = malloc(3 * sizeof(size_t) + (capacity * elemsize));
-    if (!raw) return NULL;
     raw[0] = 0;                 // Number of elements currently in the array
     raw[1] = capacity;         // capacity - how many elements can the array currently store
     raw[2] = elemsize;           // Size of elements
@@ -320,60 +303,53 @@ size_t arr_cap(void* arr) {
 }
 
 void* arr_push(void* arr, void* val) {
-    if (!arr || !val) return arr;   // kein Array -> nichts anhaengen
     size_t* raw = (size_t*)(void*)arr - 3;
     size_t len = raw[0];
     size_t cap = raw[1];
     size_t elemsize = raw[2];
 
-    if (len >= cap) {
+    len++;                  //increase counter
+    raw[0] = len;           //save counter in array
+
+    if (len > cap) {
         size_t new_cap = cap + 10;
-        // realloc erst in einen temporaeren Zeiger: bei Fehler bleibt der
-        // alte Block (samt Header) unveraendert und geht nicht verloren.
-        size_t* tmp = realloc(raw, 3 * sizeof(size_t) + (new_cap * elemsize));
-        if (!tmp) return arr;
-        raw = tmp;
-        raw[1] = new_cap;
+        raw[1] = new_cap;      //calculate new capacity
+        raw = realloc(raw, 3 * sizeof(size_t) + (new_cap * elemsize));
+        arr = (void*)&raw[3]; //Array-Pointer wird wieder auf richtigen Startpunkt gestellt
     }
 
-    char* new_item = (char*)&raw[3] + (len * elemsize);   // count 1 = index 0, count 2 = index 1 etc.
+    char* new_item = (char*)&raw[3] + ((len-1) * elemsize);   //count 1 = index 0, count 2 = index 1 etc.
     memcpy(new_item, val, elemsize);
-    raw[0] = len + 1;
-    return (void*)&raw[3];
+    return arr;
 }
 
 void arr_pop(void* arr, size_t idx) {
-    if (!arr) return;
     size_t* raw = (size_t*)(void*)arr - 3;
     size_t len = raw[0];
-    if (len == 0 || idx >= len) return;   // leeres Array / Index ausserhalb
     size_t elemsize = raw[2];
-    while (idx + 1 < len) {
+    while (idx < len -1) {
         char* val = (char*)&raw[3] + ((idx + 1) * elemsize); //Pointer auf nächstes Element
         char* upd_item = (char*)&raw[3] + (idx * elemsize); //Pointer aktuelles Element
         memcpy(upd_item, val, elemsize); //Kopiere Wert vom nächsten Element auf aktuelles Element
         idx++;
     }
-    raw[0] = len - 1;
+    len--;
+    raw[0] = len;
 }
 
 void* arr_reduce(void* arr) {
-    if (!arr) return NULL;
     size_t* raw = (size_t*)(void*)arr - 3;
     size_t len = raw[0];
     size_t cap = raw[1];
     size_t elemsize = raw[2];
 
     if (len < cap) {
-        // Bei fehlgeschlagenem Shrink bleibt der alte (groessere) Block
-        // gueltig; nur die Kapazitaet im Header wird dann nicht geaendert.
-        size_t* tmp = realloc(raw, 3 * sizeof(size_t) + (len * elemsize));
-        if (tmp) {
-            raw = tmp;
-            raw[1] = len; //Kapazität auf Länge setzen
-        }
+        cap = len;
+        raw[1] = cap; //Kapazität auf Länge setzen
+        raw = realloc(raw, 3 * sizeof(size_t) + (len * elemsize)); //Speicherbereich kürzen
+        arr = (void*)&raw[3]; //Array-Pointer wird wieder auf richtigen Startpunkt gestellt
     }
-    return (void*)&raw[3];
+    return arr;
 }
 
 void arr_delete(void* arr) {
@@ -386,12 +362,14 @@ void arr_free(void* arr) {
     free(raw);
 }
 
-// HASH-MAP  (generisch, Ersatz fuer Go's map[K]V; frueher in lib_core.c)
-//
-// Verkettet in Buckets; waechst automatisch, sobald der Fuellgrad
-// ~0.75 ueberschreitet. Schluessel und Werte werden als rohe Bytes
-// kopiert (memcpy). Optional koennen eigene Hash-/Vergleichsfunktionen
-// uebergeben werden (NULL = FNV-1a ueber die Bytes bzw. memcmp).
+/* ==================================================================
+ * HASH-MAP  (generisch, Ersatz fuer Go's map[K]V; frueher in lib_core.c)
+ *
+ * Verkettet in Buckets; waechst automatisch, sobald der Fuellgrad
+ * ~0.75 ueberschreitet. Schluessel und Werte werden als rohe Bytes
+ * kopiert (memcpy). Optional koennen eigene Hash-/Vergleichsfunktionen
+ * uebergeben werden (NULL = FNV-1a ueber die Bytes bzw. memcmp).
+ * ================================================================== */
 
 struct HmBucket {
     void *key;

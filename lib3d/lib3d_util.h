@@ -1,22 +1,24 @@
 #ifndef LIB3D_UTIL_H
 #define LIB3D_UTIL_H
 
-// lib3d_util - Basis-Helfer des C-Ports des Go-Pakets lib3d.
-//
-// Inhalt (Port von vec.go / mat4.go / color.go / math.go):
-//   - Grundtypen Vec3, Vec2, Mat4x4, ColorState, ColorInput
-//   - Vektor- und Matrix-Rechnung
-//   - Farb-Parser und Farb-Eingaenge
-//   - Mathe-Helfer (project, constrain, random, limit_num)
-//   - dynamisches Array (arr_*)
-//   - generische Hash-Map (hm_*)
-//
-// Konventionen (identisch zum Go-Code):
-//   - +Y zeigt nach oben, Kamera blickt in +Z.
-//   - Mat4x4 ist zeilen-major (m[zeile][spalte]) vom Typ double;
-//     fuer OpenGL wird beim Hochladen in Spalten-major Float32 gewandelt.
-//
-// Implementierung: lib3d_util.c
+/* ==================================================================
+ * lib3d_util - Basis-Helfer des C-Ports des Go-Pakets lib3d.
+ *
+ * Inhalt (Port von vec.go / mat4.go / color.go / math.go):
+ *   - Grundtypen Vec3, Vec2, Mat4x4, ColorState, ColorInput
+ *   - Vektor- und Matrix-Rechnung
+ *   - Farb-Parser und Farb-Eingaenge
+ *   - Mathe-Helfer (project, constrain, random, limit_num)
+ *   - dynamisches Array (arr_*)
+ *   - generische Hash-Map (hm_*)
+ *
+ * Konventionen (identisch zum Go-Code):
+ *   - +Y zeigt nach oben, Kamera blickt in +Z.
+ *   - Mat4x4 ist zeilen-major (m[zeile][spalte]) vom Typ double;
+ *     fuer OpenGL wird beim Hochladen in Spalten-major Float32 gewandelt.
+ *
+ * Implementierung: lib3d_util.c
+ * ================================================================== */
 
 #include <stddef.h>
 #include <stdint.h>
@@ -25,7 +27,9 @@
 extern "C" {
 #endif
 
-// TYPEN
+/* ------------------------------------------------------------------
+ * TYPEN
+ * ------------------------------------------------------------------ */
 typedef struct { double x, y, z; } Vec3;
 typedef struct { double x, y, s; } Vec2;
 typedef struct { double m[4][4]; } Mat4x4;   // zeilen-major
@@ -33,10 +37,9 @@ typedef struct { double m[4][4]; } Mat4x4;   // zeilen-major
 typedef struct { double r, g, b, a; } ColorState;
 typedef struct { int set; ColorState color; } ColorInput;
 
-// ALLGEMEINE HELPER-FUNKTIONEN
-size_t SafeTextCopy(char *dst, size_t dst_size, const char *src);
-
-// Vektoren 3D
+/* ------------------------------------------------------------------
+ * VEC3  (Port von vec.go)
+ * ------------------------------------------------------------------ */
 Vec3 vec3(double x, double y, double z);           // NewVec3
 Vec3 vec3_add(Vec3 a, Vec3 b);
 Vec3 vec3_sub(Vec3 a, Vec3 b);
@@ -56,7 +59,9 @@ int  vec3_equals(Vec3 a, Vec3 b, double epsilon);
 Vec3 vec3_transform(Vec3 v, const Mat4x4 *m);
 Vec3 vec3_transform_dir(Vec3 v, const Mat4x4 *m);
 
-// MATRIX  (Port von mat4.go)
+/* ------------------------------------------------------------------
+ * MATRIX  (Port von mat4.go)
+ * ------------------------------------------------------------------ */
 Mat4x4 mat4_identity(void);
 Mat4x4 mat4_translate(double dx, double dy, double dz);
 Mat4x4 mat4_rotate(double ax, double ay, double az); // Rz * Ry * Rx
@@ -67,7 +72,9 @@ Vec3   world_to_camera(Vec3 point, const Mat4x4 *view, const Mat4x4 *world);
 Vec3   rotate_around(Vec3 point, Vec3 pivot, const Mat4x4 *rotation);
 Mat4x4 mat4_perspective(double fovY, double aspect, double near, double far);
 
-// FARBE  (Port von color.go)
+/* ------------------------------------------------------------------
+ * FARBE  (Port von color.go)
+ * ------------------------------------------------------------------ */
 ColorState parse_hex(const char *hex);       // "#rgb" / "#rrggbb"
 ColorState parse_gray(double gray);          // 0..255
 ColorState parse_rgb(double r, double g, double b);    // 0..255
@@ -80,27 +87,39 @@ ColorInput color_rgb(double r, double g, double b);
 ColorInput color_rgba(double r, double g, double b, double a);
 ColorInput color_of(ColorState c);
 
-// MATH-HILFEN  (Port von math.go)
+/* ------------------------------------------------------------------
+ * MATH-HILFEN  (Port von math.go)
+ * ------------------------------------------------------------------ */
 Vec2 project(double fov, Vec3 v);            // 2D-Projektion fuer Overlays
 double l3d_constrain(double value, double lo, double hi);
 int    l3d_random(int n1, int n2);            // ganzzahlig in [n1, n2)
 double l3d_random_float(double lo, double hi);// in [lo, hi)
 float  limit_num(float number, float limit);  // begrenzt den Betrag, Vorzeichen bleibt
 
-//Dynamisches Array
-// arr_create liefert NULL, wenn kein Speicher verfuegbar ist.
-// arr_push gibt bei fehlgeschlagenem Wachstum das unveraenderte Array zurueck
-// (das Element wird dann nicht angehaengt).
+/* ------------------------------------------------------------------
+ * DYNAMISCHES ARRAY
+ *
+ * arr_create() liefert einen Zeiger auf die Nutzdaten; davor liegen
+ * drei size_t-Metadaten (Laenge, Kapazitaet, Elementgroesse). arr_push()
+ * kann den Zeiger verschieben, daher immer den Rueckgabewert verwenden.
+ * ------------------------------------------------------------------ */
 void  *arr_create(size_t capacity, size_t elemsize);
 size_t arr_len(void *arr);
 size_t arr_cap(void *arr);
 void  *arr_push(void *arr, void *val);
-void   arr_pop(void *arr, size_t idx);  // entfernt Element idx; no-op bei idx >= Laenge
+void   arr_pop(void *arr, size_t idx);
 void  *arr_reduce(void *arr);
 void   arr_delete(void *arr);  // setzt Laenge auf 0 (Kapazitaet bleibt)
 void   arr_free(void *arr);
 
-// HASH-MAP
+/* ------------------------------------------------------------------
+ * HASH-MAP  (generisch, Ersatz fuer Go's map[K]V)
+ *
+ * Verkettet in Buckets; waechst automatisch, sobald der Fuellgrad
+ * ~0.75 ueberschreitet. Schluessel und Werte werden als rohe Bytes
+ * kopiert (memcpy). Optional koennen eigene Hash-/Vergleichsfunktionen
+ * uebergeben werden (NULL = FNV-1a ueber die Bytes bzw. memcmp).
+ * ------------------------------------------------------------------ */
 typedef uint64_t (*HashMap_HashFn)(const void *key);
 typedef int (*HashMap_EqFn)(const void *keyA, const void *keyB);
 
