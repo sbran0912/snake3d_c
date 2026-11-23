@@ -18,5 +18,9 @@ Snake init_snake(int x, int y, int directionX, int directionY, const size_t coun
 void move_snake(Snake* snake, size_t edge_cells);
 void grow_snake(Snake* snake, size_t edge_cells);
 void snake_free(Snake *snake);
+void generate_food_cells(Cell *out, int count, int edge_cells);
+
+// Gibt Index des getroffenen Futters (0..count-1) oder -1 bei keinem Treffer.
+int check_food_hit(const Snake *snake, const Cell *food_cells, int count);
 
 #endif // SNAKE_H

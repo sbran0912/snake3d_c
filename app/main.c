@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -19,6 +20,7 @@
 #define CELL_SIZE   0.5                           // Kantenlaenge eines Feldes
 #define EDGE_LENGTH (EDGE_CELLS * CELL_SIZE)      // Kantenlaenge des Gitters
 #define CUBE_SIZE   2.0                           // Wuerfelkante
+#define FOOD_COUNT  5                             // Anzahl Futter-Cubes
 
 // --- Globale Szenen-/Loop-Daten ---
 static Scene scene;
@@ -26,11 +28,14 @@ static Mesh cubeMesh;
 static Mesh gridMesh;
 static ShapeStyle gridStyle;
 static ShapeStyle cubeStyle;
-static Instance *instances    = NULL; // arr_* von Instance
-
+static Instance *instances    = NULL; // arr_* von Instance (Schlange)
+static Instance *food_instances = NULL; // arr_* von Instance (Futter)
 
 // Snake
 static Snake snake;
+
+// Futter: 3 zufällige Gitterzellen
+static Cell food_cells[FOOD_COUNT];
 
 // Gitter-Parameter (zentriert um den Ursprung in der XZ-Ebene).
 static Grid grid = { .edgeCells = EDGE_CELLS, .cellSize = CELL_SIZE };
@@ -39,26 +44,51 @@ static Grid grid = { .edgeCells = EDGE_CELLS, .cellSize = CELL_SIZE };
 static void draw(void) {
 
     // Pfeiltasten abfragen und im Terminal ausgeben (je Tastendruck einmal).
-    if (l3d_key_pressed(KEY_UP))    printf("Pfeiltaste: oben\n");
-    if (l3d_key_pressed(KEY_DOWN))  printf("Pfeiltaste: unten\n");
+    if (l3d_key_pressed(KEY_UP)){
+        if (snake.directionY != 1) {
+            snake.directionX = 0;
+            snake.directionY = -1;
+            printf("Nach oben\n");
+        }
+    }
+    if (l3d_key_pressed(KEY_DOWN)){
+        if (snake.directionY != -1) {
+            snake.directionX = 0;
+            snake.directionY = 1;
+            printf("Nach unten\n");
+        }
+    }
     if (l3d_key_pressed(KEY_LEFT)) {
-        grow_snake(&snake, EDGE_CELLS);
-        printf("Pfeiltaste: links\n");
+        if (snake.directionX != 1) {
+            snake.directionX = -1;
+            snake.directionY = 0;
+            printf("Nach links\n");
+        }
     }
     if (l3d_key_pressed(KEY_RIGHT)) {
-        snake.directionX = 1;
-        snake.directionY = 0;
-        printf("Pfeiltaste: rechts\n");
+        if (snake.directionX != -1) {
+            snake.directionX = 1;
+            snake.directionY = 0;
+            printf("Nach rechts\n");
+        }
     }
 
     move_snake(&snake, EDGE_CELLS);
+    //printf("Snake head: row=%d, col=%d\n",snake.segments[snake.head].row,snake.segments[snake.head].col);
+
+    int food_hit = check_food_hit(&snake, food_cells, FOOD_COUNT);
+    if (food_hit >= 0) {
+        printf("Futter %d getroffen! (row=%d, col=%d)\n",
+               food_hit, food_cells[food_hit].row, food_cells[food_hit].col);
+        grow_snake(&snake, EDGE_CELLS);
+    }
 
     l3d_begin_scene(scene);
 
     // Bodengitter einmal
-    l3d_draw_mesh(gridMesh, gridStyle, NULL);
+    //l3d_draw_mesh(gridMesh, gridStyle, NULL);
 
-    // Alle Segmente als Instanz-Würfel aufbauen und zeichnen
+    // Alle Segmente als Instanz-Würfel aufbauen und zeichnen (blau)
     arr_delete(instances);
     instances = grid_push_cubes(instances, &grid, snake.segments,
                                 arr_len(snake.segments), CUBE_SIZE,
@@ -67,6 +97,16 @@ static void draw(void) {
     l3d_draw_mesh_instanced(cubeMesh, cubeStyle,
                            (const Instance *) instances,
                            (int) arr_len(instances));
+
+    // Futter-Cubes als rote Instances aufbauen und zeichnen
+    arr_delete(food_instances);
+    food_instances = grid_push_cubes(food_instances, &grid, food_cells,
+                                     FOOD_COUNT, CUBE_SIZE,
+                                     parse_hex("#FF0000"));
+
+    l3d_draw_mesh_instanced(cubeMesh, cubeStyle,
+                           (const Instance *) food_instances,
+                           (int) arr_len(food_instances));
 }
 
 int main(void) {
@@ -90,6 +130,10 @@ int main(void) {
 
     snake = init_snake(100, 0, 0, 1, 1);
     instances = arr_create(10, sizeof(Instance));
+    food_instances = arr_create(FOOD_COUNT, sizeof(Instance));
+
+    // 3 zufällige Futter-Positionen generieren (ohne Duplikate)
+    generate_food_cells(food_cells, FOOD_COUNT, EDGE_CELLS);
 
     int ok = l3d_init();
     if (!ok) {
@@ -102,6 +146,7 @@ int main(void) {
 
     // Aufraeumen (nach dem Schliessen des Fensters).
     arr_free(instances);
+    arr_free(food_instances);
     mesh_free(&cubeMesh);
     mesh_free(&gridMesh);
     snake_free(&snake);
